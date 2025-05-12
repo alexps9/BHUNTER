@@ -1,0 +1,52 @@
+sensors:
+  #-----------camera----------
+  - name: "kitti_camera_rgb"
+    bp_name: 'sensor.camera.rgb'
+    location:
+      x: 0.0
+      y: 0.0
+      z: 1.73
+    rotation:
+      yaw: 0.0
+      pitch: 0.0
+      roll: 0.0
+    options:
+      "image_size_x": "1248"
+      "image_size_y": "384"
+      "fov": "90"
+
+  #-----------lidar----------
+  - name: "kitti_lidar"
+    bp_name: 'sensor.lidar.ray_cast'
+    location:
+      x: 0.0
+      y: 0.0
+      z: 1.73
+    rotation:
+      yaw: 0.0
+      pitch: 0.0
+      roll: 0.0
+    options:
+      "channels": "64"
+      "range": "120.0"
+      "points_per_second": "1300000"
+      "rotation_frequency": "10"
+      "upper_fov": "3"
+      "lower_fov": "-23"
+      "horizontal_fov": "360"
+
+  #-----------depth camera----------
+  - name: "kitti_depth_camera"
+    bp_name: 'sensor.camera.depth'
+    location:
+      x: 0.0
+      y: 0.0
+      z: 1.73
+    rotation:
+      yaw: 0.0
+      pitch: 0.0
+      roll: 0.0
+    options:
+      "image_size_x": "1248"
+      "image_size_y": "384"
+      "fov": "90"
