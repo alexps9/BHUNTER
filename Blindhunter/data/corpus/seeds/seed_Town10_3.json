@@ -1,0 +1,114 @@
+{
+    "Initialize": false,
+    "mutation_type": 0,
+    "N": null,
+    "start_frame": null,
+    "end_frame": null,
+    "left_window": null,
+    "right_window": null,
+    "oracle": null,
+    "environment": {
+        "weather_type": "DayClear",
+        "map": "Town10HD_Opt"
+    },
+    "Interactive_point": {
+        "road_id": 338,
+        "land_id": 1,
+        "s": 0
+    },
+    "Sensor": "/home/adsec/Blindhunter/datasets/KITTI/config/kitti_sensor.yaml",
+    "ego": {
+        "type": "vehicle.tesla.model3",
+        "spawn_point": {
+            "x": 88.7,
+            "y": 53.7,
+            "z": 3,
+            "pitch": 0,
+            "yaw": 90,
+            "roll": 0
+        },
+        "route": [
+            {
+                "t": 1,
+                "point": 99
+            },
+            {
+                "t": 2,
+                "point": 53
+            },
+            {
+                "t": 3,
+                "point": 56
+            },
+            {
+                "t": 4,
+                "point": 107
+            },
+            {
+                "t": 5,
+                "point": 58
+            }
+        ]
+    },
+    "candidate": {
+        "type": "vehicle.tesla.model3",
+        "spawn_point": {
+            "x": 88.8,
+            "y": 210.2,
+            "z": 2,
+            "pitch": 0,
+            "yaw": -90,
+            "roll": 0
+        },
+        "route": [
+            {
+                "t": 1,
+                "point": 55
+            },
+            {
+                "t": 2,
+                "point": 57
+            },
+            {
+                "t": 3,
+                "point": 43
+            },
+            {
+                "t": 4,
+                "point": 118
+            }
+        ]
+    },
+    "npcs": [
+      {
+        "npc1":{
+          "route": [
+                       {
+                "t": 1,
+                "point": 101
+            },
+            {
+                "t": 2,
+                "point": 55
+            },
+            {
+                "t": 3,
+                "point": 57
+            },
+            {
+                "t": 4,
+                "point": 43
+            },
+            {
+                "t": 5,
+                "point": 118
+            }
+          ]
+
+      }
+        }
+    ],
+    "ego_speed": 15,
+    "candidate_speed": 15,
+    "N_list":[]
+}

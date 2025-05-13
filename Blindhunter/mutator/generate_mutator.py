@@ -14,8 +14,8 @@ from grid_map.utils.spawn import spawn_sensor, spawn_vehicle
 from grid_map.utils.ground_truth import ground_truth as ground_truth
 from grid_map.utils.gennerate_traffic import gennerate_traffic
 from grid_map.utils.spawn import sensor_resemble as sensor_resemble
-from scenario_runner.srunner.scenariomanager.carla_data_provider import CarlaDataProvider
-from scenario_runner.srunner.scenariomanager.actorcontrols.waypoint_control import WaypointVehicleControl
+from Blindhunter.scenario_runner.srunner.scenariomanager import CarlaDataProvider
+from Blindhunter.scenario_runner.srunner.scenariomanager import WaypointVehicleControl
 import copy
 import json
 import sys

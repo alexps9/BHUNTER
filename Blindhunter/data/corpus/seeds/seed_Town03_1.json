@@ -1,0 +1,87 @@
+{
+    "Initialize": false,
+    "mutation_type": 0,
+    "N": null,
+    "start_frame": null,
+    "end_frame": null,
+    "left_window": null,
+    "right_window": null,
+    "oracle": null,
+    "environment": {
+        "weather_type": "DayClear",
+        "map": "Town03_Opt"
+    },
+    "Interactive_point": {
+        "road_id": 911,
+        "land_id": 1,
+        "s": 0
+    },
+    "Sensor": "/home/adsec/Blindhunter/datasets/KITTI/config/kitti_sensor.yaml",
+    "ego": {
+        "type": "vehicle.tesla.model3",
+        "spawn_point": {
+            "x": 88.7,
+            "y": 53.7,
+            "z": 3,
+            "pitch": 0,
+            "yaw": 90,
+            "roll": 0
+        },
+        "route": [
+            {
+                "t": 2,
+                "point": 139
+            },
+            {
+                "t": 3,
+                "point": 137
+            },
+            {
+                "t": 4,
+                "point": 257
+            },
+            {
+                "t": 5,
+                "point": 104
+            },
+            {
+                "t": 6,
+                "point": 187
+            }
+        ]
+    },
+    "candidate": {
+        "type": "vehicle.tesla.model3",
+        "spawn_point": {
+            "x": 88.8,
+            "y": 210.2,
+            "z": 2,
+            "pitch": 0,
+            "yaw": -90,
+            "roll": 0
+        },
+        "route": [
+
+            {
+                "t": 2,
+                "point": 72
+            },
+            {
+                "t": 3,
+                "point": 65
+            },
+            {
+                "t": 4,
+                "point": 62
+            },
+            {
+                "t": 5,
+                "point": 135
+            }
+        ]
+    },
+    "npcs": [],
+    "ego_speed": 15,
+    "candidate_speed": 15,
+    "N_list":[]
+}

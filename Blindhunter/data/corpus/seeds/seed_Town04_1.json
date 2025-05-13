@@ -1,0 +1,130 @@
+{
+    "Initialize": false,
+    "mutation_type": 0,
+    "N": null,
+    "start_frame": null,
+    "end_frame": null,
+    "left_window": null,
+    "right_window": null,
+    "oracle": null,
+    "environment": {
+        "weather_type": "DayClear",
+        "map": "Town04_Opt"
+    },
+    "Interactive_point": {
+        "road_id": 962,
+        "land_id": 1,
+        "s": 0
+    },
+    "Sensor": "/home/adsec/Blindhunter/datasets/KITTI/config/kitti_sensor.yaml",
+    "ego": {
+        "type": "vehicle.tesla.model3",
+        "spawn_point": {
+            "x": 88.7,
+            "y": 53.7,
+            "z": 3,
+            "pitch": 0,
+            "yaw": 90,
+            "roll": 0
+        },
+        "route": [
+            {
+                "t": 1,
+                "point": 206
+            },
+            {
+                "t": 2,
+                "point": 252
+            },
+            {
+                "t": 3,
+                "point": 203
+            },
+            {
+                "t": 4,
+                "point": 103
+            },
+            {
+                "t": 5,
+                "point": 215
+            },
+            {
+                "t": 6,
+                "point": 249
+            }
+        ]
+    },
+    "candidate": {
+        "type": "vehicle.tesla.model3",
+        "spawn_point": {
+            "x": 88.8,
+            "y": 210.2,
+            "z": 2,
+            "pitch": 0,
+            "yaw": -90,
+            "roll": 0
+        },
+        "route": [
+            {
+                "t": 1,
+                "point": 254
+            },
+            {
+                "t": 2,
+                "point": 205
+            },
+            {
+                "t": 3,
+                "point": 105
+            },
+            {
+                "t": 4,
+                "point": 217
+            },
+            {
+                "t": 5,
+                "point": 251
+            },
+            {
+                "t": 6,
+                "point": 213
+            }
+        ]
+    },
+    "npcs": [
+      {
+        "npc1":{
+          "route": [
+                       {
+                "t": 1,
+                "point": 207
+            },
+            {
+                "t": 2,
+                "point": 253
+            },
+            {
+                "t": 3,
+                "point": 204
+            },
+            {
+                "t": 4,
+                "point": 104
+            },
+            {
+                "t": 5,
+                "point": 216
+            },
+            {
+                "t": 6,
+                "point": 250
+            }
+          ]
+
+      }
+        }
+    ],
+    "ego_speed": 15,
+    "candidate_speed": 15,
+    "N_list":[]
+}

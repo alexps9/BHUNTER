@@ -1,5 +1,3 @@
-import pdb
-
 import carla
 import sys
 import os

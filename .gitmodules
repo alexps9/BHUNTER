@@ -1,0 +1,3 @@
+[submodule "Blindhunter/Blindhunter/scenario_runner"]
+	path = Blindhunter/Blindhunter/scenario_runner
+	url = https://github.com/seclab-fudan/scenario_runner.git
