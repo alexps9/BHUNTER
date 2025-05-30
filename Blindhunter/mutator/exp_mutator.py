@@ -2,20 +2,15 @@ import os
 import numpy as np
 import random
 import open3d as o3d
-import matplotlib.pyplot as plt
 import carla
 import queue
 import math as mt
 import cv2
-import subprocess
-from scipy.spatial import cKDTree
-from grid_map.utils.setup import setup_world, environment
-from grid_map.utils.spawn import spawn_sensor, spawn_vehicle
-from grid_map.utils.ground_truth import ground_truth as ground_truth
-from grid_map.utils.gennerate_traffic import gennerate_traffic
-from grid_map.utils.spawn import sensor_resemble as sensor_resemble
-from Blindhunter.scenario_runner.srunner.scenariomanager import CarlaDataProvider
-from Blindhunter.scenario_runner.srunner.scenariomanager import WaypointVehicleControl
+from Blindhunter.utils.spawn import spawn_vehicle
+from Blindhunter.utils.ground_truth import ground_truth
+from Blindhunter.utils.spawn import sensor_resemble
+from Blindhunter.scenario_runner.srunner.scenariomanager.carla_data_provider import CarlaDataProvider
+
 import copy
 import json
 import sys
@@ -26,10 +21,10 @@ import argparse
 import hashlib
 import multiprocessing
 import shutil
-from carla_data_descriptor import CarlaDataDescriptor, CarlaDataDescriptorTracking
-import CMM_CARLA_Config as CFG
+from Blindhunter.carla_data_descriptor import CarlaDataDescriptor, CarlaDataDescriptorTracking
+import Blindhunter.CARLA_Config as CFG
 from numpy.linalg import pinv, inv
-from CMM_CARLA_Config import *
+from Blindhunter.CARLA_Config import *
 from PIL import Image
 import math
 import logging
@@ -501,11 +496,6 @@ def find_candidate(image_queue_lidar, lidar, tag, actor, relative_velocity: carl
             # Transform points to world coordinates
             homogeneous_points = np.hstack((points, np.ones((points.shape[0], 1))))
             world_points = (lidar_to_world @ homogeneous_points.T).T[:, :3]
-            '''
-            time_delta = 0.1
-            velocity_correction = np.array([relative_velocity.x, relative_velocity.y, relative_velocity.z]) * time_delta
-            world_points -= velocity_correction
-            '''
 
             # Check distance to ego for each transformed point
             for x, y, z in world_points:
@@ -613,9 +603,6 @@ def lidar_transformation(image_queue_lidar, lidar, tag):
     # Get the lidar's origin coordinates in world space
     origin_world = np.array([lidar.get_location().x, lidar.get_location().y, lidar.get_location().z])
 
-    # Reflect points_world across the origin's x, y in world space
-    # points_world[:, 0] = 2 * origin_world[0] - points_world[:, 0]  # Reflect x
-    # points_world[:, 1] = 2 * origin_world[1] - points_world[:, 1]  # Reflect y
 
     # Assign transformed points to the Open3D PointCloud
     lidar_pcl.points = o3d.utility.Vector3dVector(points_world)
@@ -752,7 +739,6 @@ def project_3d_to_2d_image(pcl: o3d.geometry.PointCloud, cam_trans: carla.Transf
     cam_points_homo = np.dot(to_cam_matrix, world_points_homo.T).T
     cam_points = cam_points_homo[:, :3]
 
-    ''''''
 
     valid_depth_mask = cam_points[:, 2] > 0
     cam_points = cam_points[valid_depth_mask]
@@ -790,62 +776,134 @@ def get_occlusion(candidate_img, npc_img):
     return occlusion_count
 
 
-def ray_tracing(candidate_pcl: o3d.geometry.PointCloud,
-                candidate_bbox: o3d.geometry.OrientedBoundingBox,
-                occluder_bboxs,
-                sensor_loc: np.array):
-    scene = o3d.t.geometry.RaycastingScene()
+def improved_ray_tracing(candidate_pcl: o3d.geometry.PointCloud,
+                         candidate_bbox: o3d.geometry.OrientedBoundingBox,
+                         occluder_bboxs,
+                         sensor_loc: np.array,
+                         sensor_transform: carla.Transform,
+                         ray_thickness=0.05,
+                         voxel_size=0.1):
 
+    def is_in_forward_direction(voxel, camera_pos, camera_transform):
+        forward = camera_transform.get_forward_vector()
+        forward = np.array([forward.x, forward.y, forward.z])
+        
+        direction = voxel - camera_pos
+        direction = direction / (np.linalg.norm(direction) + 1e-6)  
+        
+        dot_product = np.dot(forward, direction)
+        
+        return dot_product > 0
 
-    def obb_to_trimesh(obb):
+    def generate_voxels(box_3d, voxel_size):
+        min_bound = np.min(box_3d, axis=0)
+        max_bound = np.max(box_3d, axis=0)
+        
+        num_voxels = np.ceil((max_bound - min_bound) / voxel_size).astype(int)
+        
+        x = np.linspace(min_bound[0], max_bound[0], num_voxels[0])
+        y = np.linspace(min_bound[1], max_bound[1], num_voxels[1])
+        z = np.linspace(min_bound[2], max_bound[2], num_voxels[2])
+        
+        xx, yy, zz = np.meshgrid(x, y, z)
+        voxels = np.column_stack((xx.ravel(), yy.ravel(), zz.ravel()))
+        
+        return voxels
+
+    def improved_obb_to_trimesh(obb):
         mesh = o3d.geometry.TriangleMesh.create_box(width=obb.extent[0],
-                                                    height=obb.extent[1],
-                                                    depth=obb.extent[2])
+                                                  height=obb.extent[1],
+                                                  depth=obb.extent[2])
         mesh.translate(-mesh.get_center())
         mesh.rotate(obb.R, center=np.array([0, 0, 0]))
         mesh.translate(obb.center)
         return mesh
 
-    occluder_ids = []
-    for occluder_bbox in occluder_bboxs:
-        occluder_mesh = obb_to_trimesh(occluder_bbox)
-        occluder_id = scene.add_triangles(o3d.t.geometry.TriangleMesh.from_legacy(occluder_mesh))
-        occluder_ids.append(occluder_id)
+    def check_self_occlusion(voxel, box_3d, camera_pos):
 
-    candidate_mesh = obb_to_trimesh(candidate_bbox)
-    candidate_id = scene.add_triangles(o3d.t.geometry.TriangleMesh.from_legacy(candidate_mesh))
+        ray_direction = voxel - camera_pos
+        ray_direction = ray_direction / (np.linalg.norm(ray_direction) + 1e-6)  
+        
 
-    points = np.asarray(candidate_pcl.points)
+        box_min = box_3d.min(axis=0)
+        box_max = box_3d.max(axis=0)
+        
+        t_min = (box_min - camera_pos) / (ray_direction + 1e-6) 
+        t_max = (box_max - camera_pos) / (ray_direction + 1e-6)  
+        
+        t_min, t_max = np.minimum(t_min, t_max), np.maximum(t_min, t_max)
+        t_min = np.max(t_min)
+        t_max = np.min(t_max)
+        
+        if t_max < t_min or t_max < 0:
+            return False
+            
 
-    directions = points - sensor_loc
-    directions /= np.linalg.norm(directions, axis=1, keepdims=True)
+        t = np.dot(voxel - camera_pos, ray_direction)
+        intersection = camera_pos + t * ray_direction
 
-    rays = np.column_stack([np.tile(sensor_loc, (points.shape[0], 1)), directions])
-    rays_o3d = o3d.core.Tensor(rays, dtype=o3d.core.Dtype.Float32)
-    result = scene.cast_rays(rays_o3d)
+        return not np.allclose(intersection, voxel, atol=1e-6)
 
-    hit_geometry_ids = result['geometry_ids'].numpy()
-    hit_distances = result['t_hit'].numpy()
-    is_hit = hit_distances < np.inf
+    def check_other_occlusion(voxel, camera_pos, other_boxes):
+        ray_direction = voxel - camera_pos
+        ray_length = np.linalg.norm(ray_direction)
+        ray_direction = ray_direction / (ray_length + 1e-6) 
 
-    hit_points = sensor_loc + (hit_distances[:, None] * directions)
-    distances_to_candidate = np.linalg.norm(hit_points - points, axis=1)
+        for box in other_boxes:
+            box_min = box.min(axis=0)
+            box_max = box.max(axis=0)
 
-    occluder_mask = np.isin(hit_geometry_ids, occluder_ids) & is_hit
-    self_bbox_mask = (hit_geometry_ids == candidate_id) & is_hit & (distances_to_candidate > 0.01)
-    free_mask = ~occluder_mask & ~self_bbox_mask
+            t_min = (box_min - camera_pos) / (ray_direction + 1e-6)  
+            t_max = (box_max - camera_pos) / (ray_direction + 1e-6)  
 
-    num_occluded = np.sum(occluder_mask)
-    num_self_occluded = np.sum(self_bbox_mask)
-    num_free = np.sum(free_mask)
+            t1 = np.minimum(t_min, t_max)
+            t2 = np.maximum(t_min, t_max)
+            t_near = np.max(t1)
+            t_far = np.min(t2)
 
-    result_dict = {
-        "num_occluded": num_occluded,
-        "num_self_occluded": num_self_occluded,
-        "num_free": num_free
+
+            if t_far >= t_near and t_far >= 0 and t_near > 1e-6 and t_near < ray_length - 1e-6:
+                return True
+        return False
+
+
+    candidate_mesh = improved_obb_to_trimesh(candidate_bbox)
+    
+
+    box_3d = np.asarray(candidate_bbox.get_box_points())
+    
+
+    voxels = generate_voxels(box_3d, voxel_size)
+    
+
+    visible_count = 0
+    self_occluded_count = 0
+    other_occluded_count = 0
+    
+    for voxel in voxels:
+        if not is_in_forward_direction(voxel, sensor_loc, sensor_transform):
+            continue
+            
+        if check_self_occlusion(voxel, box_3d, sensor_loc):
+            self_occluded_count += 1
+        else:
+            if check_other_occlusion(voxel, sensor_loc, [np.asarray(obb.get_box_points()) for obb in occluder_bboxs]):
+                other_occluded_count += 1
+            else:
+                visible_count += 1
+    
+    total_rays = visible_count + other_occluded_count
+    if total_rays == 0:
+        occlusion_ratio = 0.0
+    else:
+        occlusion_ratio = other_occluded_count / total_rays
+    
+    return {
+        'num_occluded': other_occluded_count,
+        'num_self_occluded': self_occluded_count,
+        'num_free': visible_count,
+        'occlusion_rate': occlusion_ratio
     }
-
-    return result_dict
 
 '''
 ============ data collection ===========
@@ -983,10 +1041,6 @@ def creat_kitti_datapoint(actor, sensor, actor_type, occlusion_level, intrinsic_
             alpha += 2 * math.pi
         datapoint.set_alpha(alpha)
 
-        '''
-        truncation = float(1- cur_N/15) if cur_N < 15 else 0
-        datapoint.set_truncated(truncation)
-        '''
         # print(actor)
         # print(datapoint)
         return datapoint
@@ -1012,10 +1066,6 @@ def create_kitti_datapoint_tracking(actor, sensor, actor_type, occlusion_level, 
         datapoint.set_occlusion(occlusion_level)
         datapoint.occluded = occlusion_level
 
-        '''
-        truncation = float(1- cur_N/15) if cur_N < 15 else 0
-        datapoint.set_truncated(truncation)
-        '''
         # print(actor)
         # print(datapoint)
         return datapoint
@@ -1354,12 +1404,6 @@ class Mutator():
             for _point in prev_waypoints:
                 print(_point.transform.location)
 
-            '''
-            start_waypoint_transform = start_waypoint.transform
-            start_waypoint_loc = start_waypoint_transform.location
-            spawn_waypoint = find_nearest_spawn_point(world, start_waypoint_loc)
-            start_waypoint = spawn_waypoint
-            '''
             # Get the center of the junction
             total_x, total_y, total_z = 0, 0, 0
             for pairs in pair_routes:
@@ -1604,16 +1648,12 @@ class Mutator():
 
                     npc_gt_image, npc_gt_vis = project_3d_to_2d_image(npc_pcl, camera_rgb.get_transform(), intrinsic)
                     overlap_count = get_occlusion(candidate_gt_image, npc_gt_image)
-                    '''
-                    cur_occ = overlap_count / candidate_gt_vis if candidate_gt_vis not in (None, 0) else 0
-                    cur_occ = np.clip(cur_occ, 0, 1)
-                    '''
                     occluders = []
                     occluders.append(npc_points)
                     sensor_loc = camera_rgb.get_location()
                     sensor_loc = np.array([sensor_loc.x, sensor_loc.y, sensor_loc.z])
 
-                    results_dict = ray_tracing(candidate_pcl, candidate_points, occluders, sensor_loc)
+                    results_dict = improved_ray_tracing(candidate_pcl, candidate_points, occluders, sensor_loc)
 
                     occluded_rays = results_dict['num_occluded']
                     free_rays = results_dict['num_free']
@@ -1942,9 +1982,8 @@ class Mutator():
             json_str = json.dumps(seed, sort_keys=True)
             hash_object = hashlib.sha256(json_str.encode())
             self.hash_value = hash_object.hexdigest()
-            ref_folder = os.path.join("/home/adsec/blindhunter/DATA/blindhunter-benchmark/tracking")
+            ref_folder = os.path.join("./data/tracking")
             prev_dir = len([f for f in os.listdir(ref_folder) if os.path.isdir(os.path.join(ref_folder, f))])
-
             cur_dir = prev_dir + 6300
 
             detection_cnt = 0
@@ -2002,15 +2041,12 @@ class Mutator():
 
                     npc_gt_image, npc_gt_vis = project_3d_to_2d_image(combined_pcl, camera_rgb.get_transform(), intrinsic)
                     overlap_count = get_occlusion(candidate_gt_image, npc_gt_image)
-                    '''
-                    cur_occ = overlap_count / candidate_gt_vis if candidate_gt_vis not in (None, 0) else 0
-                    cur_occ = np.clip(cur_occ, 0, 1)
-                    '''
+
 
                     sensor_loc = camera_rgb.get_location()
                     sensor_loc = np.array([sensor_loc.x, sensor_loc.y, sensor_loc.z])
 
-                    results_dict = ray_tracing(candidate_pcl, candidate_points, occluders, sensor_loc)
+                    results_dict = improved_ray_tracing(candidate_pcl, candidate_points, occluders, sensor_loc)
                     occluded_rays = results_dict['num_occluded']
                     free_rays = results_dict['num_free']
                     cur_occ = occluded_rays / (free_rays + occluded_rays)
@@ -2110,7 +2146,7 @@ class Mutator():
 
 
     def remove_scenario_data(self):
-        data_path_dir = f'/home/blindhunter/_out/{self.hash_value}/'
+        data_path_dir = f'./output/{self.hash_value}/'
         if os.path.exists(data_path_dir):
             for filename in os.listdir(data_path_dir):
                 file_path = os.path.join(data_path_dir, filename)
@@ -2470,24 +2506,6 @@ class Mutator():
                                               y=mutation_loc.y + movement.y,
                                               z=mutation_loc.z)
 
-                """
-                add_strategy = random.choices([0, 1], weights=[0.9, 0.1], k=1)[0]
-                if add_strategy == 0:
-                    print(f"Mutated Frame{max_frame}")
-                    gap = abs(desired_occlusion - mean_score)
-                    max_gap = 1.0
-                    weight = min(gap / max_gap, 1.0)
-
-                    movement = direction * (bar * weight + random.uniform(0, bar * (1 - weight)))
-
-                    mutation_loc = carla.Location(x=mutation_loc.x + movement.x,
-                                                  y=mutation_loc.y + movement.y,
-                                                  z=mutation_loc.z)
-                elif add_strategy == 1:
-                    print("Adjust Left Window!")
-                    mutated_seed['left_window'] = mutated_seed['left_window'] + 1
-
-                """
 
             else:
                 self._oracle = False
@@ -2503,27 +2521,7 @@ class Mutator():
                 mutation_loc = carla.Location(x=mutation_loc.x - movement.x,
                                               y=mutation_loc.y - movement.y,
                                               z=mutation_loc.z)
-                '''
-                reduce_strategy = random.choices([0, 1, 2], weights=[0.8, 0.1, 0.1], k=1)[0]
-                if reduce_strategy == 0:
-                    print(f"Mutated Frame: {min_frame}")
-                    gap = abs(desired_occlusion - mean_score)
-                    max_gap = 1.0
-                    weight = min(gap / max_gap, 1.0)
 
-                    movement = direction * (bar * weight + random.uniform(0, bar * (1 - weight)))
-
-                    mutation_loc = carla.Location(x=mutation_loc.x - movement.x,
-                                                  y=mutation_loc.y - movement.y,
-                                                  z=mutation_loc.z)
-                elif reduce_strategy == 1:
-                    print("Adjust Left Window!")
-                    mutated_seed['left_window'] = mutated_seed['left_window'] - 1
-
-                else:
-                    print("Adjust Right Window!")
-                    mutated_seed['right_window'] = mutated_seed['right_window'] + random.choice([1, 2, 3, 4 ,5])
-                '''
 
         mutated_npc['npc_route'][index] = {
             "x": mutation_loc.x,
@@ -2797,121 +2795,3 @@ class Mutator():
 
         self._seed['left_window'] = self.left_win
         self._seed['right_window'] = self.right_win
-
-
-    # mutation without guidance
-    def excuate_random_mutation(self, desired_occlusion):
-        mutation_strategy = random.choice([0,1,2])
-        mutated_seed = copy.deepcopy(self._seed)
-        mutated_seed['emerge_frame'] = self.emerge_frame
-        mutated_seed['disappear_frame'] = self.disappearance_frame
-        mutated_seed['cnt'] = self.cnt
-        ego_loc = self.ego.get_location()
-        location_list = []
-        mutated_npc = None
-
-        for npc in mutated_seed['npcs']:
-            if self.mutated_npc in npc:
-                mutated_npc = npc[self.mutated_npc]
-                break
-
-        for loc in mutated_npc['npc_route']:
-            tmp_location = carla.Location(x=loc['x'], y=loc['y'], z=loc['z'])
-            location_list.append(tmp_location)
-
-        self.left_win, self.right_win = self.find_occlusion_win(desired_occlusion)
-
-        if self.left_win is None or self.right_win is None:
-            return mutated_seed, None, None
-
-        mean_score = 0
-        for i in range(self.left_win, self.right_win):
-            occ_ = self.occ_dict.get(i, 0)
-            if (1 - self.occ_dict.get(i, 0)) < min_frame_vis:
-                min_frame_vis = 1 - self.occ_dict.get(i, 0)
-                min_frame = i
-
-            if (1 - self.occ_dict.get(i, 0)) > max_frame_vis:
-                max_frame_vis = 1 - self.occ_dict.get(i, 0)
-                max_frame = i
-
-            mean_score += occ_
-
-        mean_score /= self.right_win - self.left_win
-
-        # adjust mutation
-        if mutation_strategy == 0:
-            ref_loc = random.choice(location_list)
-            mutation_loc, index = self.find_closest_point(ref_loc, location_list)
-            origin_loc = mutation_loc
-            bar = min(ego_loc.distance(mutation_loc) * 0.5, noise_limit)
-            direction = np.random.randn(3)
-            direction /= np.linalg.norm(direction)
-            step = random.uniform(0, bar)
-
-            move = direction * step
-            movement = carla.Vector3D(x=float(move[0]), y=float(move[1]), z=float(move[2]))
-            mutation_loc = carla.Location(x=mutation_loc.x + movement.x,
-                                              y=mutation_loc.y + movement.y,
-                                              z=mutation_loc.z)
-
-            origin_speed = mutated_npc['npc_route'][index]['speed']
-
-            mutated_npc['npc_route'][index] = {
-                "x": mutation_loc.x,
-                "y": mutation_loc.y,
-                "z": mutation_loc.z,
-                "speed": origin_speed
-            }
-
-            mutation_info = {
-                "original_loc": origin_loc,
-                "mutation_loc": mutation_loc,
-                "difference": {
-                    "x_diff": mutation_loc.x - origin_loc.x,
-                    "y_diff": mutation_loc.y - origin_loc.y,
-                    "z_diff": mutation_loc.z - origin_loc.z
-                }
-            }
-
-            print(f"window: [{self.left_win},{self.right_win})")
-            print("Mutation completed.")
-            return mutated_seed, mean_score, mutation_info
-
-        # adjust triggering time
-        elif mutation_strategy == 1:
-            time_limit = 5
-            time_change = random.randint(1, time_limit) if random.random() < 0.5 else random.randint(-time_limit, -1)
-            origin_triggering_time = mutated_npc['triggering_time']
-            mutated_npc['triggering_time'] = origin_triggering_time + time_change
-
-            mutation_info = {
-                "original_triggering_time": origin_triggering_time,
-                "mutation_triggering_time": mutated_npc['triggering_time'],
-                "difference": time_change
-            }
-            print(f"window: [{self.left_win},{self.right_win})")
-            print("Mutation completed.")
-            return mutated_seed, mean_score, mutation_info
-
-        # adjust speed
-        elif mutation_strategy == 2:
-            max_speed_change = 5.0
-            if random.random() < 0.5:
-                speed_change = random.uniform(1e-6, max_speed_change)
-            else:
-                speed_change = -random.uniform(1e-6, max_speed_change)
-
-            for waypoint in mutated_npc['npc_route']:
-                if 'speed' in waypoint:
-                    waypoint['speed'] += speed_change
-
-            mutation_info = {
-                "mean_score": mean_score,
-                "desired_occlusion": desired_occlusion,
-                "speed_change": speed_change,
-                "mutation_type": "reduce_speed" if speed_change < 0 else "increase_speed"
-            }
-            print(f"window: [{self.left_win},{self.right_win})")
-            print("Mutation completed.")
-            return mutated_seed, mean_score, mutation_info
