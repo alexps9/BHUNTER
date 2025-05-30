@@ -11,7 +11,7 @@ The main implementation code of our tool can be found in the `BlindHunter/` dire
 ---
 
 ## 📁Artifact Directory Structure
-
+``` 
 evaluation/
  ├── benchmark/       # Raw data for detection and tracking benchmarks
  │   ├── detection/   # Detection datasets across occlusion levels
@@ -19,7 +19,7 @@ evaluation/
  ├── evaluation_visualization/      # Evaluation visualization results
  │   ├── detection/   # Detection output images
  │   └── tracking/    # Tracking output videos
-
+``` 
 ---
 
 ## 📦 Benchmark Data Description
