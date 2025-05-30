@@ -1,1 +1,80 @@
 # blindhunter-new
+
+## 📌 Overview
+
+This artifact contains the benchmark data and evaluation results used in our paper:
+
+**BHUNTER: Generating Blind-Spot Driving Scenarios for Robustness Testing of Autonomous Driving Perception**
+
+The main implementation code of our tool can be found in the `BlindHunter/` directory of our GitHub repository.
+
+---
+
+## 📁Artifact Directory Structure
+
+evaluation/
+ ├── benchmark/       # Raw data for detection and tracking benchmarks
+ │   ├── detection/   # Detection datasets across occlusion levels
+ │   └── tracking/    # Tracking datasets across occlusion levels
+ ├── evaluation_visualization/      # Evaluation visualization results
+ │   ├── detection/   # Detection output images
+ │   └── tracking/    # Tracking output videos
+
+---
+
+## 📦 Benchmark Data Description
+
+Both `benchmark/detection/` and `benchmark/tracking/` contain five occlusion levels:
+
+- `No_Occlusion`
+- `Low_Occlusion`
+- `Moderate_Occlusion`
+- `Severe_Occlusion`
+- `Extreme_Occlusion`
+
+Each occlusion level contains the following subdirectories:
+
+- `calib/`: Calibration files  
+- `image_2/`: Raw RGB images  
+- `label_2/`: Ground truth annotations  
+- `planes/`: Plane estimation files  
+- `velodyne/`: Raw LiDAR point clouds  
+- `velodyne_depth/`: Depth maps generated from LiDAR  
+
+**Additional in tracking only:**
+
+- `pose/`: Camera pose information  
+- `occlusion_win.txt`: Occlusion window specification  
+
+---
+
+## 🎞️ Evaluation Results Description
+
+### 🔍 Detection Results (Images)
+
+Located in `evaluation/detection/[Occlusion_Level]/[before_retrain|after_retrain]/`. Each folder contains:
+
+- `*_camera.png`: Predicted bounding boxes overlaid on RGB images  
+- `*_lidar.jpg`: Predicted bounding boxes overlaid on LiDAR projections  
+
+These images provide qualitative visualizations as shown in the paper.
+
+### 🧿 Tracking Results (Videos)
+
+Located in `evaluation/tracking/[Occlusion_Level]/[before_retrain|after_retrain]/`. Each folder contains:
+
+- `pred_camera_bbox.mp4`: Predicted tracking results shown on camera images  
+- `pred_lidar_bbox.mp4`: Predicted tracking results shown on LiDAR point clouds  
+
+These videos demonstrate tracking performance across different occlusion levels, before and after model retraining.
+
+---
+
+## 🔧 Usage Notes
+
+This artifact is **intended for evaluation and visualization purposes only**. No additional training or execution is required.
+
+To reproduce the full pipeline, modify parameters, or retrain models, please refer to our implementation code:
+
+📎 GitHub Repository: [https://github.com/13678066760/blindhunter-new](https://github.com/13678066760/blindhunter-new)  
+➡️ Main implementation is located in the `BlindHunter/` directory.
