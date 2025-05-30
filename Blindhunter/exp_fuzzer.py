@@ -75,10 +75,12 @@ def corpus_parser(_seeds):
     return corpus
 
 class Fuzzer:
-    def __init__(self, _corpus, _workdir, _map, _strategy, _desired_occlusion):
-        self.carla_process =None
-      #  self.manager = _manager
-
+    def __init__(self, _corpus, _workdir, _map, _strategy, _desired_occlusion, _carla_path, _tracking_path, _exp_path, _benchmark_path):
+        self.carla_process = None
+        self.carla_path = _carla_path
+        self.tracking_path = _tracking_path
+        self.exp_path = _exp_path
+        self.benchmark_path = _benchmark_path
         self.corpus = corpus_parser(_corpus)
         self.workdir = _workdir
         self.map = _map
@@ -135,7 +137,7 @@ class Fuzzer:
 
     def run_carla(self):
         try:
-            process = subprocess.Popen(['/opt/carla/CarlaUE4.sh'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process = subprocess.Popen([self.carla_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             self.carla_process = process  # Store the process to manage it later
             time.sleep(12)  # Wait for CARLA to start
             if process.poll() is None:  # Process is running
@@ -326,387 +328,60 @@ class Fuzzer:
 
             return mutated_scenario, score, mutation_info
 
-
-
     def _run_instance(self, _seed, _save=True):
-        '''
-        # restart simulation every 30m
-        if time.time() - self.simtime >= 1800:
-            LOG.info("Restart Carla simulation")
-            self.restart_simulation()
-            self.simtime = time.time()
-
-            LOG.info("running seed once to init environment")
-            self.run_instance(_seed, _save=False)
-        '''
+        """
+        Run a single instance of the simulation with the given seed.
+        Args:
+            _seed: The seed to run
+            _save: Whether to save the results
+        Returns:
+            tuple: (mutated_scenario, score, mutation_info)
+        """
         self.restart_simulation()
-        # check if it is a already-verified testcase
-        '''
-        if _seed.hash in self.hashes:
-            LOG.info("Duplicate seed: {}".format(_seed.hash))
-            return None, None, None
-        '''
-
         mutator = _Mutator.exp_Mutator(_seed.seed_path)
-
-        # check if the seed is initialized
-        if _seed.instance['N'] is None:
-            try:
-                mutator.run_initial(_seed.instance, self.client, self.desired_occlusion)
-            except Exception as e:
-                print(f"An error occurred during initialization: {e}")
-                self.simtime = -1
-
-            mutator.update_scenario(self.desired_occlusion)
-
-            if not _save:
-                del mutator
-                return None, None, None
-
-            # creace the mutated_seed file
-            trace_path = self.save_scenario_queue(_seed)
-
-            # get rid of collision seed
-            if mutator.is_collision:
-                data_path_dir = os.path.join(f"/home/adsec/blindhunter/benchmark/tracking",
-                                                                      mutator.hash_value)
-                print("Broken Seed!")
-                del mutator
-                return None, None, 1
-
-            else:
-                # get muation info
-                mutated_seed, score, mutation_info = mutator.excuate_initial_mutation(desired_occlusion=self.desired_occlusion)
-
-             #   mutator.clean()
-                del mutator
-
-                score = 1 / (abs(score - self.desired_occlusion) + 1)
-                mutated_scenario = Scenario(trace_path)
-                with open(trace_path, "w") as outfile:
-                    json.dump(mutated_seed, outfile, indent=4)
-                mutated_scenario.update_instance()
-
-                return mutated_scenario, score, mutation_info
-
-        else:
-            # calculate feedback score
-            if  _seed.instance["start_frame"] is not None:
-                try:
-                    if _seed.hash is None:
-                        data_dir = f"{self.workdir}/{str(self.strategy)}/{str(self.desired_occlusion)}/dataset/{_seed.get_hash()}"
-                    else:
-                        data_dir = f"{self.workdir}/{str(self.strategy)}/{str(self.desired_occlusion)}/dataset/{_seed.hash}"
-
-                    mutator.run_sim(_seed.instance, self.client, global_cnt=self.global_cnt, data_dir=data_dir,
-                                    desired_occlusion=self.desired_occlusion)
-                except Exception as e:
-                    print(f"An error occurred during sim: {e}")
-                    self.simtime = -1
-
-                self.tracking_path = os.path.join(f"/home/adsec/blindhunter/benchmark/tracking",
-                                                                      mutator.hash_value)
-
-                if not _save:
-                    del mutator
-                    return None, None, None
-
-                # save scenario data
-                trace_path = self.save_scenario_queue(_seed)
-                #  get rid of collision seed
-                if mutator.is_collision:
-                    print("Broken Seed!")
-                    del mutator
-                    return None, None, 1
-                else:
-                    # get muation info
-                    if self.global_cnt < 10:
-                        mutated_seed, score, mutation_info = mutator.excuate_adjust_mutation(
-                            desired_occlusion=self.desired_occlusion)
-
-                    else:
-                        mutated_seed, score, mutation_info = mutator.excuate_random_mutation(desired_occlusion=self.desired_occlusion)
-                        self.global_cnt = 0
-
-                    # the more the mean score is closed to the desired_visbility the higher score the seed get
-                    score = 1 / (abs(score - self.desired_occlusion) + 1)
-                    #       mutator.clean()
-
-                    del mutator
-
-                mutated_scenario = Scenario(trace_path)
-
-                with open(trace_path, "w") as outfile:
-                    json.dump(mutated_seed, outfile, indent=4)
-
-                mutated_scenario.update_instance()
-
-            else:
-                trace_path = self.save_scenario_queue(_seed)
-                print("Invalid Seed!")
-                del mutator
-                return None, None, 1
-
-
-            return mutated_scenario, score, mutation_info
-
-    def _run_instance(self, _seed, _save=True):
-        '''
-        # restart simulation every 30m
-        if time.time() - self.simtime >= 1800:
-            LOG.info("Restart Carla simulation")
-            self.restart_simulation()
-            self.simtime = time.time()
-
-            LOG.info("running seed once to init environment")
-            self.run_instance(_seed, _save=False)
-        '''
-        self.restart_simulation()
-        # check if it is a already-verified testcase
-        '''
-        if _seed.hash in self.hashes:
-            LOG.info("Duplicate seed: {}".format(_seed.hash))
-            return None, None, None
-        '''
-
-        mutator = _Mutator.exp_Mutator(_seed.seed_path)
-
-        # check if the seed is initialized
-        if _seed.instance['N'] is None:
-            try:
-                mutator.run_initial(_seed.instance, self.client, self.desired_occlusion)
-            except Exception as e:
-                print(f"An error occurred during initialization: {e}")
-                self.simtime = -1
-
-            mutator.update_scenario(self.desired_occlusion)
-
-            if not _save:
-                del mutator
-                return None, None, None
-
-            # creace the mutated_seed file
-            trace_path = self.save_scenario_queue(_seed)
-
-            # get rid of collision seed
-            if mutator.is_collision:
-
-                print("Broken Seed!")
-                del mutator
-                return None, None, 1
-
-            else:
-                # get muation info
-                mutated_seed, score, mutation_info = mutator.excuate_initial_mutation(desired_occlusion=self.desired_occlusion)
-
-             #   mutator.clean()
-                del mutator
-
-                score = 1 / (abs(score - self.desired_occlusion) + 1)
-                mutated_scenario = Scenario(trace_path)
-                with open(trace_path, "w") as outfile:
-                    json.dump(mutated_seed, outfile, indent=4)
-                mutated_scenario.update_instance()
-
-                return mutated_scenario, score, mutation_info
-
-        else:
-            # calculate feedback score
-            if  _seed.instance["start_frame"] is not None:
-                try:
-                    if _seed.hash is None:
-                        data_dir = f"{self.workdir}/{str(self.strategy)}/{str(self.desired_occlusion)}/dataset/{_seed.get_hash()}"
-                    else:
-                        data_dir = f"{self.workdir}/{str(self.strategy)}/{str(self.desired_occlusion)}/dataset/{_seed.hash}"
-
-                    mutator.run_sim(_seed.instance, self.client, global_cnt=self.global_cnt, data_dir=data_dir,
-                                    desired_occlusion=self.desired_occlusion)
-                except Exception as e:
-                    print(f"An error occurred during sim: {e}")
-                    self.simtime = -1
-
-
-                if not _save:
-                    del mutator
-                    return None, None, None
-
-                # save scenario data
-                trace_path = self.save_scenario_queue(_seed)
-                #  get rid of collision seed
-                if mutator.is_collision:
-                    data_path_dir = os.path.join(f"/home/adsec/blindhunter/benchmark/tracking",
-                                                 mutator.hash_value)
-                    print("Broken Seed!")
-                    del mutator
-                    return None, None, 1
-                else:
-                    # get muation info
-                    if self.global_cnt < 10:
-                        preference = random.choice([0, 1, 2])
-                        if preference == 1:
-                            mutated_seed, score, mutation_info = mutator.excuate_adjust_mutation(
-                                desired_occlusion=self.desired_occlusion)
-                        elif preference == 2:
-                            mutated_seed, score, mutation_info = mutator.excuate_adjust_triggering_time(desired_occlusion=self.desired_occlusion)
-                        else:
-                            mutated_seed, score, mutation_info = mutator.excuate_adjust_speed(desired_occlusion=self.desired_occlusion)
-
-                        self.global_cnt += 1
-
-                    else:
-                        mutated_seed, score, mutation_info = mutator.excuate_spawn_mutation()
-                        self.global_cnt = 0
-
-                    # the more the mean score is closed to the desired_visbility the higher score the seed get
-                    score = 1 / (abs(score - self.desired_occlusion) + 1)
-                    #       mutator.clean()
-                    self.tracking_path = os.path.join(f"/home/adsec/blindhunter/benchmark/tracking",
-                                                      mutator.hash_value)
-                    del mutator
-
-                mutated_scenario = Scenario(trace_path)
-
-                with open(trace_path, "w") as outfile:
-                    json.dump(mutated_seed, outfile, indent=4)
-
-                mutated_scenario.update_instance()
-
-            else:
-                trace_path = self.save_scenario_queue(_seed)
-                data_path_dir = os.path.join(f"/home/adsec/blindhunter/benchmark/tracking",
-                                                                      mutator.hash_value)
-                print("Invalid Seed!")
-                del mutator
-                return None, None, 1
-
-
-            return mutated_scenario, score, mutation_info
-
-    def run_avfuzzer(self, _seed,  _save=True):
-        '''
-        # restart simulation every 30m
-        if time.time() - self.simtime >= 1800:
-            LOG.info("Restart Carla simulation")
-            self.restart_simulation()
-            self.simtime = time.time()
-
-            LOG.info("running seed once to init environment")
-            self.run_instance(_seed, _save=False)
-        '''
-        self.restart_simulation()
-        # check if it is a already-verified testcase
-        '''
-        if _seed.hash in self.hashes:
-            LOG.info("Duplicate seed: {}".format(_seed.hash))
-            return None, None, None
-        '''
-
-        mutator = _Mutator.avfuzzer_Mutator(_seed.seed_path)
         try:
-            mutator.run_sim(_seed.instance, self.client, self.desired_occlusion)
+            mutator.run_sim(_seed.instance, self.client, global_cnt=self.global_cnt, data_dir=data_dir,
+                            desired_occlusion=self.desired_occlusion)
         except Exception as e:
-            print(f"An error occurred during initialization: {e}")
+            print(f"An error occurred during simulation: {e}")
             self.simtime = -1
-
-        mutator.update_scenario(self.desired_occlusion)
 
         if not _save:
             del mutator
-            return None, None, None, None
+            return None, None, None
 
-        # creace the mutated_seed file
         trace_path = self.save_scenario_queue(_seed)
-
-        # get rid of collision seed
         if mutator.is_collision:
-            data_path_dir = os.path.join(f"/home/adsec/blindhunter/benchmark/tracking",
-                                         mutator.hash_value)
+            data_path_dir = os.path.join(self.tracking_path, mutator.hash_value)
             print("Broken Seed!")
             del mutator
-            return None, None, 1, None
-
+            return None, None, 1
         else:
-            # get muation info
-            mutated_seed, score, mutation_info, minD = mutator.excuate_avfuzzer_mutation(
-                desired_occlusion=self.desired_occlusion)
+            if self.global_cnt < 10:
+                preference = random.choice([0, 1, 2])
+                if preference == 1:
+                    mutated_seed, score, mutation_info = mutator.excuate_adjust_mutation(
+                        desired_occlusion=self.desired_occlusion)
+                elif preference == 2:
+                    mutated_seed, score, mutation_info = mutator.excuate_adjust_triggering_time(desired_occlusion=self.desired_occlusion)
+                else:
+                    mutated_seed, score, mutation_info = mutator.excuate_adjust_speed(desired_occlusion=self.desired_occlusion)
 
-            #   mutator.clean()
-            del mutator
+                self.global_cnt += 1
+            else:
+                mutated_seed, score, mutation_info = mutator.excuate_spawn_mutation()
+                self.global_cnt = 0
 
             score = 1 / (abs(score - self.desired_occlusion) + 1)
-            mutated_scenario = Scenario(trace_path)
-            with open(trace_path, "w") as outfile:
-                json.dump(mutated_seed, outfile, indent=4)
-            mutated_scenario.update_instance()
-
-            fitness = float((200 - minD) / 200)
-
-            return mutated_scenario, score, mutation_info, fitness
-
-    def run_drivefuzz(self, _seed,  _save=True):
-        '''
-        # restart simulation every 30m
-        if time.time() - self.simtime >= 1800:
-            LOG.info("Restart Carla simulation")
-            self.restart_simulation()
-            self.simtime = time.time()
-
-            LOG.info("running seed once to init environment")
-            self.run_instance(_seed, _save=False)
-        '''
-        self.restart_simulation()
-        # check if it is a already-verified testcase
-        '''
-        if _seed.hash in self.hashes:
-            LOG.info("Duplicate seed: {}".format(_seed.hash))
-            return None, None, None
-        '''
-
-        mutator = _Mutator.drivefuzz_Mutator(_seed.seed_path)
-        try:
-            mutator.run_sim(_seed.instance, self.client, self.desired_occlusion)
-        except Exception as e:
-            print(f"An error occurred during initialization: {e}")
-            self.simtime = -1
-
-
-        if not _save:
-            del mutator
-            return None, None, None, None
-
-        # creace the mutated_seed file
-        trace_path = self.save_scenario_queue(_seed)
-
-        # get rid of collision seed
-        if mutator.is_collision:
-            print("Broken Seed!")
-            del mutator
-            return None, None, 1, None
-
-        else:
-            # get muation info
-            mutated_seed, score, mutation_info, fitness = mutator.excuate_drivefuzz_muation(
-                desired_occlusion=self.desired_occlusion)
-
-            #   mutator.clean()
+            self.tracking_path = os.path.join(self.tracking_path, mutator.hash_value)
             del mutator
 
-            if score is not None:
-                score = 1 / (abs(score - self.desired_occlusion) + 1)
+        mutated_scenario = Scenario(trace_path)
+        with open(trace_path, "w") as outfile:
+            json.dump(mutated_seed, outfile, indent=4)
+        mutated_scenario.update_instance()
 
-            else:
-                score = 0.5
-
-
-
-            mutated_scenario = Scenario(trace_path)
-            with open(trace_path, "w") as outfile:
-                json.dump(mutated_seed, outfile, indent=4)
-            mutated_scenario.update_instance()
-
-
-            return mutated_scenario, score, mutation_info, fitness
-
+        return mutated_scenario, score, mutation_info
 
     def population_add(self, mutated_seed):
         scenarios = mutated_seed
@@ -982,29 +657,6 @@ class Fuzzer:
 
         return True
 
-    def excuate_weak(self):
-        seed_queue = corpus_parser(f"/home/adsec/blindhunter/exp/{str(self.strategy)}/{str(self.desired_occlusion)}/queue/")
-        if len(seed_queue)>0:
-            cur_scenario = random.choice(seed_queue)
-            re_mutated_scenario, re_score, mutation_info = self.run_instance(cur_scenario)
-            print(f"seed:{cur_scenario.seed_path}, occ_score:{re_score}")
-            if re_score is not None and abs(re_score-1) < 1/10 :
-                cur_scenario.instance["right_window"] = re_mutated_scenario.instance["right_window"]
-                cur_scenario.instance["left_window"] = re_mutated_scenario.instance["left_window"]
-                with open(cur_scenario.seed_path, "w") as outfile:
-                    json.dump(cur_scenario.instance, outfile, indent=4)
-                self.save_scenario_trace(cur_scenario)
-            else:
-                if re_mutated_scenario is not None:
-                    cur_scenario.instance["right_window"] = re_mutated_scenario.instance["right_window"]
-
-                    self.remove_scenario_data(cur_scenario)
-
-        else:
-            scenario = random.choice(self.corpus)
-            _mutated_scenario, _score, _ = self.run_instance(scenario)
-            self.remove_scenario_data(scenario)
-
     def excuate_random(self):
         if self.flag < len(self.corpus):
             # check every scenario in the corpus
@@ -1150,179 +802,26 @@ class Fuzzer:
                         if mutation_info is 1:
                             self.population_pop(cur_scenario)
 
-
-    def excuate_avfuzzer(self):
-        if self.flag < len(self.corpus) or len(self.population) <=0:
-            # check every scenario in the corpus
-            scenario = self.corpus[self.flag]
-            LOG.info(scenario.seed_path)
-            print(scenario.seed_path)
-
-            self.save_snapshot()
-            _mutated_scenario, _score, _, fitness = self.run_avfuzzer(scenario)
-
-
-            print(f"seed:{scenario.seed_path}, occ_score:{_score}")
-            # check if the scenario is the desired seed
-            if abs(_score - 1) < 1 / 10:
-                self.save_scenario_trace(scenario)
-
-            else:
-                if _mutated_scenario is not None:
-                    scenario.verified = True
-                    scenario.occ_score = _score
-                    _mutated_scenario.score = fitness
-                    self.population_add(_mutated_scenario)
-                    # remove unwanted data
-                    self.flag += 1
-                    self.save_snapshot()
-
-                else:
-                    if _ is None:
-                        scenario.verified = False
-                    elif _ is 1:
-                        self.population_pop(scenario)
-
-        # the fuzzing loop
-        while len(self.population) > 0 :
-            cur_scenario, idx = self.population_get()
-            print(cur_scenario.seed_path)
-            self.save_snapshot()
-            if cur_scenario.instance["cnt"] > 15:
-                self.population_pop(cur_scenario)
-                self.save_snapshot()
-            re_mutated_scenario, re_score, mutation_info, fitness  = self.run_avfuzzer(cur_scenario)
+    def excuate_weak(self):
+        seed_queue = corpus_parser(os.path.join(self.exp_path, str(self.strategy), str(self.desired_occlusion), "queue"))
+        if len(seed_queue)>0:
+            cur_scenario = random.choice(seed_queue)
+            re_mutated_scenario, re_score, mutation_info = self.run_instance(cur_scenario)
             print(f"seed:{cur_scenario.seed_path}, occ_score:{re_score}")
-            if re_score is not None and abs(re_score - 1) < 1 / 10:
+            if re_score is not None and abs(re_score-1) < 1/10 :
                 cur_scenario.instance["right_window"] = re_mutated_scenario.instance["right_window"]
                 cur_scenario.instance["left_window"] = re_mutated_scenario.instance["left_window"]
                 with open(cur_scenario.seed_path, "w") as outfile:
                     json.dump(cur_scenario.instance, outfile, indent=4)
                 self.save_scenario_trace(cur_scenario)
-                self.population_pop(cur_scenario)
-                self.save_snapshot()
-
             else:
                 if re_mutated_scenario is not None:
-                    LOG.info("Original seed: {}".format(cur_scenario.seed_path))
-                    LOG.info("Saved seed: {}".format(cur_scenario.hash))
-                    LOG.info("Queue size: {}".format(len(self.population)))
-                    cur_scenario.verified = True
-                    cur_scenario.occ_score = re_score
-                    if fitness < cur_scenario.score:
-                        cur_scenario.score = fitness
-
                     cur_scenario.instance["right_window"] = re_mutated_scenario.instance["right_window"]
-                    with open(cur_scenario.seed_path, "w") as outfile:
-                        json.dump(cur_scenario.instance, outfile, indent=4)
-                    self.population[idx] = cur_scenario
-                    re_mutated_scenario.score = fitness
-
-                    if self.population_dup(fitness, cur_scenario):
-                        print("Similar seed: {}".format(cur_scenario.seed_path))
-
-                    else:
-                        # to run the mutated seed
-                        self.population_add(re_mutated_scenario)
-                        print("ADD POPULATION!")
-                        self.hashes.add(cur_scenario.hash)
-
-                    self.save_snapshot()
-
-                    log_info = f"{cur_scenario.hash}\t{cur_scenario.score}\t{mutation_info}\t{re_mutated_scenario.seed_path}\n"
-                    with open(self.workdir + f"/{str(self.strategy)}/{str(self.desired_occlusion)}/info", "a") as f:
-                        f.write(log_info)
-
-                else:
-                    if mutation_info is 1:
-                        self.population_pop(cur_scenario)
-
-
-
-    def excuate_drivefuzz(self):
-        if self.flag < len(self.corpus) or len(self.population) <= 0:
-            # check every scenario in the corpus
-            scenario = self.corpus[self.flag]
-            LOG.info(scenario.seed_path)
-            print(scenario.seed_path)
-
-            self.save_snapshot()
-            _mutated_scenario, _score, _, fitness = self.run_drivefuzz(scenario)
-
-            print(f"seed:{scenario.seed_path}, occ_score:{_score}")
-            # check if the scenario is the desired seed
-            if abs(_score - 1) < 1 / 10:
-                self.save_scenario_trace(scenario)
-
-            else:
-                if _mutated_scenario is not None:
-                    scenario.verified = True
-                    scenario.occ_score = _score
-                    scenario.score = _score
-                    self.population_add(_mutated_scenario)
-                    # remove unwanted data
-                    self.flag += 1
-                    self.save_snapshot()
-
-                else:
-                    if _ is None:
-                        scenario.verified = False
-                    elif _ is 1:
-                        self.population_pop(scenario)
-
-        # the fuzzing loop
-        while len(self.population) > 0:
-            cur_scenario, idx = self.population_get()
-            print(cur_scenario.seed_path)
-            self.save_snapshot()
-            if cur_scenario.instance["cnt"] > 15:
-                self.population_pop(cur_scenario)
-                self.save_snapshot()
-            re_mutated_scenario, re_score, mutation_info, fitness = self.run_drivefuzz(cur_scenario)
-            print(f"seed:{cur_scenario.seed_path}, occ_score:{re_score}")
-            if re_score is not None and abs(re_score - 1) < 1 / 10:
-                cur_scenario.instance["right_window"] = re_mutated_scenario.instance["right_window"]
-                cur_scenario.instance["left_window"] = re_mutated_scenario.instance["left_window"]
-                with open(cur_scenario.seed_path, "w") as outfile:
-                    json.dump(cur_scenario.instance, outfile, indent=4)
-                self.save_scenario_trace(cur_scenario)
-                self.population_pop(cur_scenario)
-                self.save_snapshot()
-
-            else:
-                if re_mutated_scenario is not None:
-                    LOG.info("Original seed: {}".format(cur_scenario.seed_path))
-                    LOG.info("Saved seed: {}".format(cur_scenario.hash))
-                    LOG.info("Queue size: {}".format(len(self.population)))
-                    cur_scenario.verified = True
-                    cur_scenario.occ_score = re_score
-                    if fitness < cur_scenario.score:
-                        cur_scenario.score = fitness
-
-                    cur_scenario.instance["right_window"] = re_mutated_scenario.instance["right_window"]
-                    with open(cur_scenario.seed_path, "w") as outfile:
-                        json.dump(cur_scenario.instance, outfile, indent=4)
-                    self.population[idx] = cur_scenario
-                    re_mutated_scenario.score = fitness
-
-                    if self.population_dup(fitness, cur_scenario):
-                        print("Similar seed: {}".format(cur_scenario.seed_path))
-
-                    else:
-                        # to run the mutated seed
-                        self.population_add(re_mutated_scenario)
-                        print("ADD POPULATION!")
-                        self.hashes.add(cur_scenario.hash)
-
-                    self.save_snapshot()
-
-                    log_info = f"{cur_scenario.hash}\t{cur_scenario.score}\t{mutation_info}\t{re_mutated_scenario.seed_path}\n"
-                    with open(self.workdir + f"/{str(self.strategy)}/{str(self.desired_occlusion)}/info", "a") as f:
-                        f.write(log_info)
-
-                else:
-                    if mutation_info is 1:
-                        self.population_pop(cur_scenario)
+                    self.remove_scenario_data(cur_scenario)
+        else:
+            scenario = random.choice(self.corpus)
+            _mutated_scenario, _score, _ = self.run_instance(scenario)
+            self.remove_scenario_data(scenario)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Execute Simulation Fuzzing with configurable parameters.")
@@ -1330,8 +829,12 @@ def parse_arguments():
     parser.add_argument("--corpus", type=str, required=True, help="Path to the corpus directory.")
     parser.add_argument("--workdir", type=str, required=True, help="Path to the working directory.")
     parser.add_argument("--map", type=str, default="Town01", help="CARLA map to use.")
-    parser.add_argument("--strategy", type=str, choices=["guided", "random", "no_scheduling", "avfuzzer", "drivefuzz"], required=True, help="Fuzzing strategy.")
+    parser.add_argument("--strategy", type=str, choices=["guided", "random", "no_scheduling"], required=True, help="Fuzzing strategy.")
     parser.add_argument("--desired_occlusion", type=float, required=True, help="Desired occlusion level.")
+    parser.add_argument("--carla_path", type=str, default="./carla/CarlaUE4.sh", help="Path to CARLA executable.")
+    parser.add_argument("--tracking_path", type=str, default="./data/tracking", help="Path to tracking data directory.")
+    parser.add_argument("--exp_path", type=str, default="./data/exp", help="Path to experiment data directory.")
+    parser.add_argument("--benchmark_path", type=str, default="./data/benchmark", help="Path to benchmark data directory.")
 
     return parser.parse_args()
 
@@ -1339,26 +842,32 @@ def main():
     """Execute Simulation Fuzzing"""
     args = parse_arguments()
 
-    print("Received arguments:", sys.argv)  # 调试用
+    print("Received arguments:", sys.argv)  # For debugging
 
     LOG.info("Fuzzing Start.")
     LOG.info(f"Strategy: {args.strategy}")
     LOG.info(f"Desired Occlusion: {args.desired_occlusion}")
+    LOG.info(f"CARLA Path: {args.carla_path}")
+    LOG.info(f"Tracking Path: {args.tracking_path}")
+    LOG.info(f"Experiment Path: {args.exp_path}")
+    LOG.info(f"Benchmark Path: {args.benchmark_path}")
 
     fuzzer = Fuzzer(
         _corpus=args.corpus,
         _workdir=args.workdir,
         _map=args.map,
         _strategy=args.strategy,
-        _desired_occlusion=args.desired_occlusion
+        _desired_occlusion=args.desired_occlusion,
+        _carla_path=args.carla_path,
+        _tracking_path=args.tracking_path,
+        _exp_path=args.exp_path,
+        _benchmark_path=args.benchmark_path
     )
 
     strategy_methods = {
         "guided": fuzzer.execute,
         "random": fuzzer.excuate_random,
-        "no_scheduling": fuzzer.excuate_weak,
-        "avfuzzer": fuzzer.excuate_avfuzzer,
-        "drivefuzz": fuzzer.excuate_drivefuzz
+        "no_scheduling": fuzzer.excuate_weak
     }
 
     strategy_method = strategy_methods.get(args.strategy)
