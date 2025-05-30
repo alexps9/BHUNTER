@@ -21,8 +21,8 @@ import argparse
 import hashlib
 import multiprocessing
 import shutil
-from Blindhunter.carla_data_descriptor import CarlaDataDescriptor, CarlaDataDescriptorTracking
-import Blindhunter.CARLA_Config as CFG
+from Blindhunter.utils.descriptor.carla_data_descriptor import CarlaDataDescriptor, CarlaDataDescriptorTracking
+import Blindhunter.CMM_CARLA_Config as CFG
 from numpy.linalg import pinv, inv
 from Blindhunter.CARLA_Config import *
 from PIL import Image
