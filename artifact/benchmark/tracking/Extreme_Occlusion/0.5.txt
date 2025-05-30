@@ -1,11 +1,8 @@
 {
-    "Initialize": false,
-    "mutation_type": 0,
-    "N": 0,
-    "start_frame": 10,
-    "end_frame": 210,
-    "left_window": 10,
-    "right_window": 200,
+    "start_frame": 0,
+    "end_frame": 200,
+    "left_window": 45,
+    "right_window": 186,
     "oracle": null,
     "environment": {
         "weather_type": "DayRain",
@@ -16,7 +13,6 @@
         "land_id": 1,
         "s": 0
     },
-    "Sensor": "/home/adsec/Blindhunter/datasets/KITTI/config/kitti_sensor.yaml",
     "ego": {
         "type": "vehicle.tesla.model3",
         "spawn_point": {
