@@ -73,8 +73,3 @@ These videos demonstrate tracking performance across different occlusion levels,
 ## 🔧 Usage Notes
 
 This artifact is **intended for evaluation and visualization purposes only**. No additional training or execution is required.
-
-To reproduce the full pipeline, modify parameters, or retrain models, please refer to our implementation code:
-
-📎 GitHub Repository: [https://github.com/13678066760/blindhunter-new](https://github.com/13678066760/blindhunter-new)  
-➡️ Main implementation is located in the `BlindHunter/` directory.
