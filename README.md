@@ -73,3 +73,23 @@ These videos demonstrate tracking performance across different occlusion levels,
 ## 🔧 Usage Notes
 
 This artifact is **intended for evaluation and visualization purposes only**. No additional training or execution is required.
+
+---
+ 
+## 🙏 Acknowledgments
+ 
+The style transfer component of this project is built upon / adapted from **Unsup_Recycle_GAN**:
+ 
+> Kaihong Wang, Kumar Akash, Teruhisa Misu. *"Learning Temporally and Semantically Consistent Unpaired Video-to-video Translation Through Pseudo-Supervision From Synthetic Optical Flow."* AAAI 2022.  
+> Code: https://github.com/wangkaihong/Unsup_Recycle_GAN
+ 
+```bibtex
+@article{Wang_Akash_Misu_2022,
+  title={Learning Temporally and Semantically Consistent Unpaired Video-to-video Translation Through Pseudo-Supervision From Synthetic Optical Flow},
+  journal={Proceedings of the AAAI Conference on Artificial Intelligence},
+  author={Wang, Kaihong and Akash, Kumar and Misu, Teruhisa},
+  year={2022}
+}
+```
+ 
+We thank the original authors for making their implementation publicly available.
