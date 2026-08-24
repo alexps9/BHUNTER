@@ -16,8 +16,7 @@ class UnalignedScaleDataset(BaseDataset):
             self.dir_A = os.path.join(opt.dataroot, "train/A")
             self.dir_B = os.path.join(opt.dataroot, "train/B")
         if opt.phase == "test":
-            # self.dir_A = os.path.join(opt.dataroot, "val/A")
-            self.dir_A = os.path.join(opt.dataroot_A)
+            self.dir_A = os.path.join(opt.dataroot, "val/A")
             self.dir_B = os.path.join(opt.dataroot, "val/B")
         # else:
         #     self.dir_A = os.path.join(opt.dataroot, opt.split, "A")

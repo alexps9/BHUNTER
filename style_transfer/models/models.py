@@ -18,10 +18,6 @@ def create_model(opt):
         assert(opt.dataset_mode == 'unaligned_scale')
         from .unsup_model_single import UnsupModel
         model = UnsupModel()
-    elif opt.model == 'unsup_style':
-        assert(opt.dataset_mode == 'unaligned_scale')
-        from .unsup_model_style import UnsupModel
-        model = UnsupModel()
     else:
         raise ValueError("Model [%s] not recognized." % opt.model)
     model.initialize(opt)

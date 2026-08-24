@@ -69,13 +69,13 @@ class UnsupModel(BaseModel):
       # initialize optimizers
       self.optimizer_G = torch.optim.Adam(itertools.chain(self.netG_A.parameters(), self.netG_B.parameters()), 
                                           lr=opt.lr, betas=(opt.beta1, 0.999))
-      # self.optimizer_D_A = torch.optim.Adam(self.netD_A.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
-      # self.optimizer_D_B = torch.optim.Adam(self.netD_B.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+      self.optimizer_D_A = torch.optim.Adam(self.netD_A.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+      self.optimizer_D_B = torch.optim.Adam(self.netD_B.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
       self.optimizers = []
       self.schedulers = []
       self.optimizers.append(self.optimizer_G)
-      # self.optimizers.append(self.optimizer_D_A)
-      # self.optimizers.append(self.optimizer_D_B)
+      self.optimizers.append(self.optimizer_D_A)
+      self.optimizers.append(self.optimizer_D_B)
       for optimizer in self.optimizers:
         self.schedulers.append(networks.get_scheduler(optimizer, opt))
 
@@ -313,27 +313,20 @@ class UnsupModel(BaseModel):
     self.optimizer_G.zero_grad()
     self.backward_G()
     self.optimizer_G.step()
-    # # D_A
-    # self.optimizer_D_A.zero_grad()
-    # self.backward_D_A()
-    # self.optimizer_D_A.step()
-    # # D_B
-    # self.optimizer_D_B.zero_grad()
-    # self.backward_D_B()
-    # self.optimizer_D_B.step()
+    # D_A
+    self.optimizer_D_A.zero_grad()
+    self.backward_D_A()
+    self.optimizer_D_A.step()
+    # D_B
+    self.optimizer_D_B.zero_grad()
+    self.backward_D_B()
+    self.optimizer_D_B.step()
 
   def get_current_errors(self):
-    # ret_errors = OrderedDict(
-    #   [('D_A', self.loss_D_A), ('G_A', self.loss_G_A), ('Cyc_A', self.loss_cycle_A), ('UnCyc_A', self.loss_unsup_cycle_A), 
-    #   ('Unsup_A', self.unsup_loss_A), ('Cont_A', self.cont_loss_A), ('Idt_A', self.loss_idt_A),
-    #   ('D_B', self.loss_D_B), ('G_B', self.loss_G_B), ('Cyc_B', self.loss_cycle_B), ('UnCyc_B', self.loss_unsup_cycle_B), 
-    #   ('Unsup_B', self.unsup_loss_B), ('Cont_B', self.cont_loss_B), ('Idt_B', self.loss_idt_B),
-    #   ])
-    # 删除D版本的
     ret_errors = OrderedDict(
-      [('G_A', self.loss_G_A), ('Cyc_A', self.loss_cycle_A), ('UnCyc_A', self.loss_unsup_cycle_A), 
+      [('D_A', self.loss_D_A), ('G_A', self.loss_G_A), ('Cyc_A', self.loss_cycle_A), ('UnCyc_A', self.loss_unsup_cycle_A), 
       ('Unsup_A', self.unsup_loss_A), ('Cont_A', self.cont_loss_A), ('Idt_A', self.loss_idt_A),
-      ('G_B', self.loss_G_B), ('Cyc_B', self.loss_cycle_B), ('UnCyc_B', self.loss_unsup_cycle_B), 
+      ('D_B', self.loss_D_B), ('G_B', self.loss_G_B), ('Cyc_B', self.loss_cycle_B), ('UnCyc_B', self.loss_unsup_cycle_B), 
       ('Unsup_B', self.unsup_loss_B), ('Cont_B', self.cont_loss_B), ('Idt_B', self.loss_idt_B),
       ])
 
