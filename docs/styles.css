@@ -124,6 +124,42 @@ a:hover { color: var(--blue); }
   color: #1d3e5c;
 }
 
+.authors {
+  max-width: 820px;
+  margin: 22px auto 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.7;
+}
+
+.authors a {
+  color: var(--blue);
+  text-decoration: none;
+  margin: 0 0.35rem;
+}
+
+.authors a:hover { text-decoration: underline; }
+
+.authors sup, .affil sup {
+  font-size: 0.72em;
+  color: var(--blue-bright);
+}
+
+.affil, .emails {
+  margin: 4px auto 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.emails a {
+  color: var(--muted);
+  margin: 0 0.35rem;
+  font-size: 13.5px;
+  text-decoration: none;
+}
+
+.emails a:hover { color: var(--blue); }
+
 .deck {
   max-width: 720px;
   margin: 18px auto 0;
@@ -264,6 +300,54 @@ h2 {
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
+}
+
+.pair {
+  display: grid;
+  gap: 18px;
+}
+
+.pair figure { margin: 0; }
+
+.pair img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  background: #071421;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.pair figcaption {
+  margin-top: 8px;
+  text-align: center;
+  color: var(--blue);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.diagram {
+  margin: 28px 0 0;
+  padding: 18px 18px 12px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.diagram img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: white;
+}
+
+.diagram figcaption {
+  margin: 12px 0 4px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
 }
 
 .compare {

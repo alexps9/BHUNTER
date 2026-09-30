@@ -131,6 +131,7 @@ These files are for inspection. They do not retrain a detector or tracker.
 
 ```bibtex
 @article{bhunter2026tosem,
+  author  = {Peng, Songyang and Dai, Jiarun and Lv, Yanghao and Luo, Jiaqi and Huang, Zongan and Zhang, Yuan and Yang, Min},
   title   = {BHUNTER: Generating Blind-Spot Driving Scenarios for Robustness Testing of Autonomous Driving Perception},
   journal = {ACM Transactions on Software Engineering and Methodology},
   year    = {2026}

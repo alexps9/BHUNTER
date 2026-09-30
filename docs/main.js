@@ -69,37 +69,23 @@ bindGroup(galleryThumbs, (level) => {
 const detLevels = document.getElementById("det-levels");
 const detSensor = document.getElementById("det-sensor");
 const detCaption = document.getElementById("det-caption");
-const compare = document.getElementById("det-compare");
-const compareBase = compare.querySelector(".base");
-const compareOver = compare.querySelector(".over");
-const compareClip = compare.querySelector(".clip");
-const compareRange = compare.querySelector("input");
-const compareHandle = compare.querySelector(".handle");
-
-function layoutCompare() {
-  compareOver.style.width = `${compare.clientWidth}px`;
-  compareClip.style.width = `${compareRange.value}%`;
-  compareHandle.style.left = `${compareRange.value}%`;
-}
+const detBefore = document.getElementById("det-before");
+const detAfter = document.getElementById("det-after");
 
 function updateDetection() {
   const level = selected(detLevels);
   const sensor = selected(detSensor);
   const label = LEVELS.find(([id]) => id === level)[1];
   const sensorName = sensor === "camera" ? "camera image" : "LiDAR projection";
-  compareBase.src = detPath(level, "after_retrain", sensor);
-  compareOver.src = detPath(level, "before_retrain", sensor);
-  compareBase.alt = `${label} detections after retraining on the ${sensorName}`;
-  compareOver.alt = `${label} detections before retraining on the ${sensorName}`;
+  detBefore.src = detPath(level, "before_retrain", sensor);
+  detAfter.src = detPath(level, "after_retrain", sensor);
+  detBefore.alt = `${label} detections before retraining on the ${sensorName}`;
+  detAfter.alt = `${label} detections after retraining on the ${sensorName}`;
   detCaption.textContent = `${label}. Blue boxes are model predictions on frame 000000.`;
 }
 
 fillLevelTabs(detLevels, updateDetection);
 bindGroup(detSensor, updateDetection);
-compareRange.addEventListener("input", layoutCompare);
-compareBase.addEventListener("load", layoutCompare);
-window.addEventListener("resize", layoutCompare);
-layoutCompare();
 
 const trkLevels = document.getElementById("trk-levels");
 const trkPhase = document.getElementById("trk-phase");

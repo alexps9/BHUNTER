@@ -23,6 +23,7 @@
       <a href="#gallery">Gallery</a>
       <a href="#motivation">Motivation</a>
       <a href="#method">Method</a>
+      <a href="#case-study">Case Study</a>
       <a href="#detection">Detection</a>
       <a href="#tracking">Tracking</a>
       <a href="#benchmark">Benchmark</a>
@@ -35,6 +36,26 @@
       <p class="venue">ACM TOSEM 2026</p>
       <h1 class="wordmark">BHUNTER</h1>
       <p class="subtitle">Generating Blind-Spot Driving Scenarios for Robustness Testing of Autonomous Driving Perception</p>
+      <p class="authors">
+        <a href="https://orcid.org/0009-0008-7170-3930">Songyang Peng</a><sup>1</sup>
+        <a href="https://orcid.org/0009-0002-5636-7808">Jiarun Dai</a><sup>1,†</sup>
+        <a href="https://orcid.org/0009-0007-3808-3672">Yanghao Lv</a><sup>1</sup>
+        <a href="https://orcid.org/0009-0006-3004-7186">Jiaqi Luo</a><sup>1</sup>
+        <a href="https://orcid.org/0009-0007-3443-6418">Zongan Huang</a><sup>1</sup>
+        <a href="https://orcid.org/0000-0003-0726-9996">Yuan Zhang</a><sup>1</sup>
+        <a href="https://orcid.org/0000-0001-9714-5545">Min Yang</a><sup>1,†</sup>
+      </p>
+      <p class="affil"><sup>1</sup>Fudan University, Shanghai, China</p>
+      <p class="affil">† Corresponding authors</p>
+      <p class="emails">
+        <a href="mailto:sypeng23@m.fudan.edu.cn">sypeng23@m.fudan.edu.cn</a>
+        <a href="mailto:jrdai14@fudan.edu.cn">jrdai14@fudan.edu.cn</a>
+        <a href="mailto:yhlv22@m.fudan.edu.cn">yhlv22@m.fudan.edu.cn</a>
+        <a href="mailto:24110240138@m.fudan.edu.cn">24110240138@m.fudan.edu.cn</a>
+        <a href="mailto:23110240081@m.fudan.edu.cn">23110240081@m.fudan.edu.cn</a>
+        <a href="mailto:yuanxzhang@fudan.edu.cn">yuanxzhang@fudan.edu.cn</a>
+        <a href="mailto:m_yang@fudan.edu.cn">m_yang@fudan.edu.cn</a>
+      </p>
       <p class="deck">BHUNTER searches simulated traffic until a road user falls into a chosen blind spot, then exports those scenes for detection and tracking.</p>
       <div class="actions">
         <a class="button" href="https://github.com/alexps9/BHUNTER">
@@ -59,10 +80,13 @@
       <h2>Motivation</h2>
       <ul class="reasons">
         <li>Everyday driving logs contain few moments in which a road user slips behind another object and then reappears. Perception models are rarely scored on that gap.</li>
-        <li>A simulator can sample traffic at random, but random traffic does not aim at a chosen amount of occlusion.</li>
-        <li>A detector or tracker can look reliable while the target is fully visible and still lose it once the same target is heavily blocked.</li>
+        <li>A detector can miss that road user while it is occluded, and the ego vehicle can then enter the conflict on a bad control decision.</li>
         <li>BHUNTER searches for those missing views inside CARLA and keeps the scenarios whose occlusion matches the requested level.</li>
       </ul>
+      <figure class="diagram">
+        <img src="media/figures/motivation.png" alt="Occlusion hides vehicle A from the ego vehicle, and the missed detection leads to a collision.">
+        <figcaption>A road user hidden at <em>T</em><sub>0</sub> can be missed by perception and met again at <em>T</em><sub>n</sub>.</figcaption>
+      </figure>
     </section>
 
     <section id="method" class="wrap">
@@ -71,52 +95,46 @@
         <p>Search starts from a corpus of scenario seeds: a map, weather, an ego route, and a candidate actor. The fuzzer mutates the surrounding traffic, resimulates the scene, and scores how much of the candidate is occluded. Guided search keeps variants that move toward the requested occlusion. Random search and a weaker schedule are included as alternatives.</p>
         <p>Scenes that reach the target are written out in a KITTI-style layout, with camera images, LiDAR, calibration, labels, and, for tracking, poses. A separate appearance-transfer model, adapted from Unsup Recycle-GAN, can shift simulated frames toward real imagery. The released checkpoint is epoch 50.</p>
       </div>
-      <ol class="pipeline">
-        <li>
-          <span class="step">01</span>
-          <h3>Seeds</h3>
-          <p>CARLA maps, weather, ego routes, and a candidate actor.</p>
-        </li>
-        <li>
-          <span class="step">02</span>
-          <h3>Search</h3>
-          <p>Mutate traffic until the measured occlusion meets the target.</p>
-        </li>
-        <li>
-          <span class="step">03</span>
-          <h3>Export</h3>
-          <p>Save camera, LiDAR, calibration, labels, and tracking poses.</p>
-        </li>
-        <li>
-          <span class="step">04</span>
-          <h3>Transfer</h3>
-          <p>Map simulated camera frames toward a real appearance.</p>
-        </li>
-        <li>
-          <span class="step">05</span>
-          <h3>Test</h3>
-          <p>Read detection and tracking before and after retraining.</p>
-        </li>
-      </ol>
+      <figure class="diagram">
+        <img src="media/figures/overview.png" alt="BHUNTER overview: seed scenarios, occlusion estimation, and occlusion-guided scheduling and mutation inside CARLA.">
+        <figcaption>Overview. Seeds are scheduled and mutated against an occlusion estimate, then exported as sensor data.</figcaption>
+      </figure>
+      <figure class="diagram">
+        <img src="media/figures/occlusion.png" alt="Voxel occlusion at two frames. Visible voxels are green, externally occluded voxels are red, and self-occluded voxels are gray.">
+        <figcaption>Occlusion is the fraction of the candidate's voxels hidden by another object. It rises from 1/3 to 1 as the occluder crosses the line of sight.</figcaption>
+      </figure>
+      <figure class="diagram">
+        <img src="media/figures/trajectory.png" alt="Five trajectory edits around an origin scenario: two that reduce occlusion and two that increase it.">
+        <figcaption>From an origin scenario, shifting the occluder relative to the line of sight either opens or closes the candidate.</figcaption>
+      </figure>
+    </section>
+
+    <section id="case-study" class="wrap">
+      <h2>Case Study</h2>
+      <p class="lead">The same three roles recur as occlusion grows: the ego vehicle, a candidate that should be perceived, and an occluder that blocks it.</p>
+      <figure class="diagram">
+        <img src="media/figures/case-study.png" alt="Top-down case studies for low, moderate, severe, and extreme occlusion.">
+        <figcaption>Low occlusion leaves the candidate partly visible. Extreme occlusion places the occluder directly on the line of sight.</figcaption>
+      </figure>
     </section>
 
     <section id="detection" class="wrap">
       <h2>Detection</h2>
-      <p class="lead">Drag the divider to compare predicted boxes before and after retraining. Switch the sensor to see the same frame on the camera or on the LiDAR projection.</p>
+      <p class="lead">Each row is the same frame. Before retraining is on top, after retraining is below. Switch the sensor to see the camera image or the LiDAR projection.</p>
       <div class="tabs" id="det-levels" role="tablist" aria-label="Detection occlusion level"></div>
       <div class="segment" id="det-sensor" role="group" aria-label="Sensor">
         <button type="button" data-value="camera" aria-pressed="true">Camera</button>
         <button type="button" data-value="lidar" aria-pressed="false">LiDAR</button>
       </div>
-      <div class="compare" id="det-compare">
-        <img class="base" alt="Detections after retraining" src="media/det/No_Occlusion/after_retrain/camera.jpg">
-        <div class="clip">
-          <img class="over" alt="Detections before retraining" src="media/det/No_Occlusion/before_retrain/camera.jpg">
-        </div>
-        <span class="tag before">Before</span>
-        <span class="tag after">After</span>
-        <div class="handle" aria-hidden="true"></div>
-        <input type="range" min="0" max="100" value="58" aria-label="Compare before and after retraining">
+      <div class="pair" id="det-pair">
+        <figure>
+          <img id="det-before" alt="Detections before retraining" src="media/det/No_Occlusion/before_retrain/camera.jpg">
+          <figcaption>Before retraining</figcaption>
+        </figure>
+        <figure>
+          <img id="det-after" alt="Detections after retraining" src="media/det/No_Occlusion/after_retrain/camera.jpg">
+          <figcaption>After retraining</figcaption>
+        </figure>
       </div>
       <p class="caption" id="det-caption">No occlusion. Blue boxes are model predictions on frame 000000.</p>
     </section>
@@ -181,6 +199,7 @@
       <h2>BibTeX</h2>
       <div class="bib">
         <pre id="bib-text">@article{bhunter2026tosem,
+  author  = {Peng, Songyang and Dai, Jiarun and Lv, Yanghao and Luo, Jiaqi and Huang, Zongan and Zhang, Yuan and Yang, Min},
   title   = {BHUNTER: Generating Blind-Spot Driving Scenarios for Robustness Testing of Autonomous Driving Perception},
   journal = {ACM Transactions on Software Engineering and Methodology},
   year    = {2026}

@@ -3,7 +3,41 @@ message: "If you use BHUNTER, please cite the TOSEM 2026 paper."
 title: "BHUNTER: Generating Blind-Spot Driving Scenarios for Robustness Testing of Autonomous Driving Perception"
 type: software
 authors:
-  - name: "The BHUNTER Authors"
+  - family-names: Peng
+    given-names: Songyang
+    email: sypeng23@m.fudan.edu.cn
+    affiliation: Fudan University
+    orcid: "https://orcid.org/0009-0008-7170-3930"
+  - family-names: Dai
+    given-names: Jiarun
+    email: jrdai14@fudan.edu.cn
+    affiliation: Fudan University
+    orcid: "https://orcid.org/0009-0002-5636-7808"
+  - family-names: Lv
+    given-names: Yanghao
+    email: yhlv22@m.fudan.edu.cn
+    affiliation: Fudan University
+    orcid: "https://orcid.org/0009-0007-3808-3672"
+  - family-names: Luo
+    given-names: Jiaqi
+    email: 24110240138@m.fudan.edu.cn
+    affiliation: Fudan University
+    orcid: "https://orcid.org/0009-0006-3004-7186"
+  - family-names: Huang
+    given-names: Zongan
+    email: 23110240081@m.fudan.edu.cn
+    affiliation: Fudan University
+    orcid: "https://orcid.org/0009-0007-3443-6418"
+  - family-names: Zhang
+    given-names: Yuan
+    email: yuanxzhang@fudan.edu.cn
+    affiliation: Fudan University
+    orcid: "https://orcid.org/0000-0003-0726-9996"
+  - family-names: Yang
+    given-names: Min
+    email: m_yang@fudan.edu.cn
+    affiliation: Fudan University
+    orcid: "https://orcid.org/0000-0001-9714-5545"
 year: 2026
 license: MIT
 repository-code: "https://github.com/alexps9/BHUNTER"
@@ -11,6 +45,19 @@ preferred-citation:
   type: article
   title: "BHUNTER: Generating Blind-Spot Driving Scenarios for Robustness Testing of Autonomous Driving Perception"
   authors:
-    - name: "The BHUNTER Authors"
+    - family-names: Peng
+      given-names: Songyang
+    - family-names: Dai
+      given-names: Jiarun
+    - family-names: Lv
+      given-names: Yanghao
+    - family-names: Luo
+      given-names: Jiaqi
+    - family-names: Huang
+      given-names: Zongan
+    - family-names: Zhang
+      given-names: Yuan
+    - family-names: Yang
+      given-names: Min
   journal: "ACM Transactions on Software Engineering and Methodology"
   year: 2026
