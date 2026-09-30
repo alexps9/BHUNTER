@@ -129,6 +129,8 @@ These files are for inspection. They do not retrain a detector or tracker.
 
 ## Citation
 
+If you use BHUNTER, please cite the TOSEM 2026 paper. Software metadata for a Zenodo archive is in [`.zenodo.json`](.zenodo.json). A DOI is minted after the GitHub repository is enabled at [Zenodo](https://zenodo.org/account/settings/github/) and a release is published.
+
 ```bibtex
 @article{bhunter2026tosem,
   author  = {Peng, Songyang and Dai, Jiarun and Lv, Yanghao and Luo, Jiaqi and Huang, Zongan and Zhang, Yuan and Yang, Min},

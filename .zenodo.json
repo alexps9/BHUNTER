@@ -1,0 +1,69 @@
+{
+  "title": "BHUNTER: Generating Blind-Spot Driving Scenarios for Robustness Testing of Autonomous Driving Perception",
+  "description": "<p>BHUNTER searches simulated traffic for blind-spot driving scenarios at a chosen occlusion level and exports synchronized camera and LiDAR data for detection and tracking. This archive is the software and benchmark accompanying the ACM TOSEM 2026 paper.</p><p>A blind spot is a short interval in which a candidate road user is hidden by one or more occluders. BHUNTER scores that interval with a scenario-level temporal occlusion rate (STOR), computed from visible, externally occluded, and self-occluded voxels, then uses occlusion-guided fuzzing in CARLA to reach a requested level. The released benchmark contains 2,000 scenarios, 400 at each of five occlusion levels.</p><p>Project page: <a href=\"https://alexps9.github.io/BHUNTER/\">https://alexps9.github.io/BHUNTER/</a></p>",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "mit",
+  "version": "1.0.0",
+  "keywords": [
+    "autonomous driving",
+    "blind spot",
+    "occlusion",
+    "perception",
+    "object detection",
+    "tracking",
+    "CARLA",
+    "benchmark"
+  ],
+  "creators": [
+    {
+      "name": "Peng, Songyang",
+      "affiliation": "Fudan University",
+      "orcid": "0009-0008-7170-3930"
+    },
+    {
+      "name": "Dai, Jiarun",
+      "affiliation": "Fudan University",
+      "orcid": "0009-0002-5636-7808"
+    },
+    {
+      "name": "Lv, Yanghao",
+      "affiliation": "Fudan University",
+      "orcid": "0009-0007-3808-3672"
+    },
+    {
+      "name": "Luo, Jiaqi",
+      "affiliation": "Fudan University",
+      "orcid": "0009-0006-3004-7186"
+    },
+    {
+      "name": "Huang, Zongan",
+      "affiliation": "Fudan University",
+      "orcid": "0009-0007-3443-6418"
+    },
+    {
+      "name": "Zhang, Yuan",
+      "affiliation": "Fudan University",
+      "orcid": "0000-0003-0726-9996"
+    },
+    {
+      "name": "Yang, Min",
+      "affiliation": "Fudan University",
+      "orcid": "0000-0001-9714-5545"
+    }
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/alexps9/BHUNTER",
+      "relation": "isSupplementTo",
+      "scheme": "url",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "https://alexps9.github.io/BHUNTER/",
+      "relation": "isDocumentedBy",
+      "scheme": "url",
+      "resource_type": "other"
+    }
+  ]
+}

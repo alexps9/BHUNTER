@@ -54,9 +54,58 @@ function fillLevelTabs(container, onSelect) {
   bindGroup(container, onSelect);
 }
 
-const galleryImage = document.getElementById("gallery-image");
+function bindCompare(root) {
+  const range = root.querySelector("input");
+  const clip = root.querySelector(".clip");
+  const handle = root.querySelector(".handle");
+  const over = root.querySelector(".over");
+  const base = root.querySelector(".base");
+
+  function fitOverlay() {
+    over.style.width = `${root.clientWidth}px`;
+    over.style.height = `${base.clientHeight}px`;
+  }
+
+  function setSplit(value) {
+    const pct = `${value}%`;
+    clip.style.width = pct;
+    handle.style.left = pct;
+  }
+
+  range.addEventListener("input", () => setSplit(range.value));
+  base.addEventListener("load", fitOverlay);
+  window.addEventListener("resize", fitOverlay);
+  setSplit(range.value);
+  if (base.complete) fitOverlay();
+  return fitOverlay;
+}
+
+const pairToken = new WeakMap();
+
+function swapPair(beforeImg, afterImg, beforeSrc, afterSrc, fitOverlay) {
+  const token = {};
+  pairToken.set(beforeImg, token);
+  const nextBefore = new Image();
+  const nextAfter = new Image();
+  let pending = 2;
+  const done = () => {
+    if (pairToken.get(beforeImg) !== token || --pending !== 0) return;
+    beforeImg.src = beforeSrc;
+    afterImg.src = afterSrc;
+    requestAnimationFrame(fitOverlay);
+  };
+  nextBefore.onload = nextAfter.onload = done;
+  nextBefore.onerror = nextAfter.onerror = done;
+  nextBefore.src = beforeSrc;
+  nextAfter.src = afterSrc;
+}
+
+const galleryCompare = document.getElementById("gallery-compare");
+const galleryBefore = document.getElementById("gallery-before");
+const galleryAfter = document.getElementById("gallery-after");
 const galleryCaption = document.getElementById("gallery-caption");
 const galleryThumbs = document.getElementById("gallery-thumbs");
+const fitGallery = bindCompare(galleryCompare);
 
 LEVELS.forEach(([id, label], index) => {
   const button = document.createElement("button");
@@ -69,24 +118,31 @@ LEVELS.forEach(([id, label], index) => {
 
 bindGroup(galleryThumbs, (level) => {
   const label = LEVELS.find(([id]) => id === level)[1];
-  galleryImage.src = detPath(level, "after_retrain", "camera");
-  galleryImage.alt = `Predicted detection under ${label.toLowerCase()}`;
-  galleryCaption.textContent = `${label}. Frame ${FRAME[level]}, after retraining.`;
+  galleryBefore.alt = `${label} detections before retraining`;
+  galleryAfter.alt = `${label} detections after retraining`;
+  galleryCaption.textContent = `${label}. Frame ${FRAME[level]}. Drag to compare before and after retraining.`;
+  swapPair(
+    galleryBefore,
+    galleryAfter,
+    detPath(level, "before_retrain", "camera"),
+    detPath(level, "after_retrain", "camera"),
+    fitGallery
+  );
 });
 
 const detLevels = document.getElementById("det-levels");
 const detSensor = document.getElementById("det-sensor");
 const detCaption = document.getElementById("det-caption");
+const detCompare = document.getElementById("det-compare");
 const detBefore = document.getElementById("det-before");
 const detAfter = document.getElementById("det-after");
+const fitDetection = bindCompare(detCompare);
 
 function updateDetection() {
   const level = selected(detLevels);
   const sensor = selected(detSensor);
   const label = LEVELS.find(([id]) => id === level)[1];
   const sensorName = sensor === "camera" ? "camera image" : "LiDAR projection";
-  detBefore.src = detPath(level, "before_retrain", sensor);
-  detAfter.src = detPath(level, "after_retrain", sensor);
   detBefore.alt = `${label} detections before retraining on the ${sensorName}`;
   detAfter.alt = `${label} detections after retraining on the ${sensorName}`;
   let note = "";
@@ -96,6 +152,13 @@ function updateDetection() {
       : " Open LiDAR to see the second car recovered after retraining.";
   }
   detCaption.textContent = `${label}. Blue boxes are model predictions on frame ${FRAME[level]}.${note}`;
+  swapPair(
+    detBefore,
+    detAfter,
+    detPath(level, "before_retrain", sensor),
+    detPath(level, "after_retrain", sensor),
+    fitDetection
+  );
 }
 
 fillLevelTabs(detLevels, updateDetection);
@@ -141,7 +204,7 @@ document.getElementById("copy-bib").addEventListener("click", async (event) => {
   }, 1600);
 });
 
-document.querySelectorAll(".diagram, .method-steps li, .stats article, .levels article, .reasons li, .case-video").forEach((el, index) => {
+document.querySelectorAll(".diagram, .method-steps li, .stats article, .levels article, .reasons li").forEach((el, index) => {
   el.classList.add("reveal");
   el.style.setProperty("--d", `${(index % 5) * 70}ms`);
 });

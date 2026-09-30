@@ -66,12 +66,19 @@
 
     <section id="gallery" class="wrap page">
       <h2>Gallery</h2>
-      <p class="lead">Five occlusion levels, from an open view to a road user that is nearly hidden. These frames are predicted detections on scenes released with the paper.</p>
-      <div class="stage">
-        <img id="gallery-image" alt="Predicted detection on a generated driving scene" src="media/det/No_Occlusion/after_retrain/camera.jpg">
+      <p class="lead">Drag the divider. The left side is before retraining, and the right side is after. These are predicted detections on scenes released with the paper.</p>
+      <div class="compare" id="gallery-compare">
+        <img class="base" id="gallery-after" alt="Detections after retraining" src="media/det/No_Occlusion/after_retrain/camera.jpg">
+        <div class="clip">
+          <img class="over" id="gallery-before" alt="Detections before retraining" src="media/det/No_Occlusion/before_retrain/camera.jpg">
+        </div>
+        <span class="tag before">Before</span>
+        <span class="tag after">After</span>
+        <div class="handle"></div>
+        <input type="range" min="0" max="100" value="50" aria-label="Drag to compare before and after retraining">
       </div>
       <div class="thumbs" id="gallery-thumbs" role="tablist" aria-label="Occlusion levels"></div>
-      <p class="caption" id="gallery-caption">No occlusion. Frame 000000, after retraining.</p>
+      <p class="caption" id="gallery-caption">No occlusion. Frame 000000. Drag to compare before and after retraining.</p>
     </section>
 
     <section id="motivation" class="wrap page">
@@ -137,10 +144,6 @@
         <img src="media/figures/case-study.png" alt="Top-down case studies for low, moderate, severe, and extreme occlusion.">
         <figcaption>Four generated patterns, from a glancing occluder to one that fully covers the candidate.</figcaption>
       </figure>
-      <div class="video-frame case-video">
-        <video controls playsinline preload="metadata" poster="media/det/Severe_Occlusion/after_retrain/camera.jpg" src="media/bhunter.mp4"></video>
-      </div>
-      <p class="caption">A generated blind-spot scenario, from search to the exported scene.</p>
     </section>
 
     <section id="benchmark" class="wrap page">
@@ -188,21 +191,21 @@
 
       <section id="detection" class="sub">
       <h3>Detection</h3>
-      <p class="lead">The same frame before and after retraining. Before is on top. Severe uses frame 000002: on LiDAR the original model marks one car, and the retrained model also marks a second car that was missed. Moderate uses frame 000004, a close vehicle at the edge of the view.</p>
+      <p class="lead">Drag the divider on the same frame. Before retraining is on the left. Severe uses frame 000002: on LiDAR the original model marks one car, and the retrained model also marks a second car that was missed. Moderate uses frame 000004, a close vehicle at the edge of the view.</p>
       <div class="tabs" id="det-levels" role="tablist" aria-label="Detection occlusion level"></div>
       <div class="segment" id="det-sensor" role="group" aria-label="Sensor">
         <button type="button" data-value="camera" aria-pressed="true">Camera</button>
         <button type="button" data-value="lidar" aria-pressed="false">LiDAR</button>
       </div>
-      <div class="pair" id="det-pair">
-        <figure>
-          <img id="det-before" alt="Detections before retraining" src="media/det/No_Occlusion/before_retrain/camera.jpg">
-          <figcaption>Before retraining</figcaption>
-        </figure>
-        <figure>
-          <img id="det-after" alt="Detections after retraining" src="media/det/No_Occlusion/after_retrain/camera.jpg">
-          <figcaption>After retraining</figcaption>
-        </figure>
+      <div class="compare" id="det-compare">
+        <img class="base" id="det-after" alt="Detections after retraining" src="media/det/No_Occlusion/after_retrain/camera.jpg">
+        <div class="clip">
+          <img class="over" id="det-before" alt="Detections before retraining" src="media/det/No_Occlusion/before_retrain/camera.jpg">
+        </div>
+        <span class="tag before">Before</span>
+        <span class="tag after">After</span>
+        <div class="handle"></div>
+        <input type="range" min="0" max="100" value="50" aria-label="Drag to compare detection before and after retraining">
       </div>
       <p class="caption" id="det-caption">No occlusion. Blue boxes are model predictions on frame 000000.</p>
     </section>
