@@ -4,6 +4,8 @@
 
 ACM Transactions on Software Engineering and Methodology (TOSEM), 2026.
 
+**Project page:** https://alexps9.github.io/BHUNTER/
+
 BHUNTER searches for driving scenarios in which surrounding traffic creates a blind spot for the ego vehicle. It runs in the CARLA simulator, mutates scenario seeds toward a target occlusion level, and exports camera and LiDAR data in a KITTI-style layout for detection and tracking. A separate appearance-transfer model maps simulated camera frames closer to real imagery. This repository contains the fuzzer, the appearance-transfer code and checkpoint, and the occlusion benchmark released with the paper.
 
 ## Repository layout

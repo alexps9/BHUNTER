@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BHUNTER: Generating Blind-Spot Driving Scenarios</title>
+  <meta name="description" content="BHUNTER searches for blind-spot driving scenarios and releases an occlusion benchmark for testing autonomous-driving perception. ACM TOSEM 2026.">
+  <meta name="theme-color" content="#0e4c8a">
+  <meta property="og:title" content="BHUNTER">
+  <meta property="og:description" content="Generating blind-spot driving scenarios for robustness testing of autonomous driving perception.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://alexps9.github.io/BHUNTER/media/det/No_Occlusion/after_retrain/camera.jpg">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,650&family=Nunito+Sans:opsz,wght@6..12,400;6..12,700;6..12,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#gallery">Skip to content</a>
+  <header class="topnav">
+    <nav aria-label="Table of contents">
+      <a href="#gallery">Gallery</a>
+      <a href="#motivation">Motivation</a>
+      <a href="#method">Method</a>
+      <a href="#detection">Detection</a>
+      <a href="#tracking">Tracking</a>
+      <a href="#benchmark">Benchmark</a>
+      <a href="#bibtex">BibTeX</a>
+    </nav>
+  </header>
+
+  <main>
+    <header class="hero wrap">
+      <p class="venue">ACM TOSEM 2026</p>
+      <h1 class="wordmark">BHUNTER</h1>
+      <p class="subtitle">Generating Blind-Spot Driving Scenarios for Robustness Testing of Autonomous Driving Perception</p>
+      <p class="deck">BHUNTER searches simulated traffic until a road user falls into a chosen blind spot, then exports those scenes for detection and tracking.</p>
+      <div class="actions">
+        <a class="button" href="https://github.com/alexps9/BHUNTER">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.6 0 0 3.6 0 8c0 3.5 2.3 6.5 5.5 7.6.4.1.5-.2.5-.4v-1.4c-2.2.5-2.7-1.1-2.7-1.1-.4-.9-.9-1.2-.9-1.2-.7-.5.1-.5.1-.5.8.1 1.2.8 1.2.8.7 1.2 1.9.9 2.3.7.1-.5.3-.9.5-1.1-1.8-.2-3.6-.9-3.6-4 0-.9.3-1.6.8-2.2-.1-.2-.4-1 .1-2.1 0 0 .7-.2 2.2.8a7.5 7.5 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.4 1.1.2 1.9.1 2.1.5.6.8 1.3.8 2.2 0 3.1-1.9 3.7-3.6 3.9.3.3.6.8.6 1.5v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8c0-4.4-3.6-8-8-8z"/></svg>
+          Code
+        </a>
+        <a class="button ghost" href="#benchmark">Benchmark</a>
+      </div>
+    </header>
+
+    <section id="gallery" class="wrap">
+      <h2>Gallery</h2>
+      <p class="lead">Five occlusion levels, from an open view to a road user that is nearly hidden. These frames are predicted detections on scenes released with the paper.</p>
+      <div class="stage">
+        <img id="gallery-image" alt="Predicted detection on a generated driving scene" src="media/det/No_Occlusion/after_retrain/camera.jpg">
+      </div>
+      <div class="thumbs" id="gallery-thumbs" role="tablist" aria-label="Occlusion levels"></div>
+      <p class="caption" id="gallery-caption">No occlusion. Frame 000000, after retraining.</p>
+    </section>
+
+    <section id="motivation" class="wrap">
+      <h2>Motivation</h2>
+      <ul class="reasons">
+        <li>Everyday driving logs contain few moments in which a road user slips behind another object and then reappears. Perception models are rarely scored on that gap.</li>
+        <li>A simulator can sample traffic at random, but random traffic does not aim at a chosen amount of occlusion.</li>
+        <li>A detector or tracker can look reliable while the target is fully visible and still lose it once the same target is heavily blocked.</li>
+        <li>BHUNTER searches for those missing views inside CARLA and keeps the scenarios whose occlusion matches the requested level.</li>
+      </ul>
+    </section>
+
+    <section id="method" class="wrap">
+      <h2>Method</h2>
+      <div class="prose">
+        <p>Search starts from a corpus of scenario seeds: a map, weather, an ego route, and a candidate actor. The fuzzer mutates the surrounding traffic, resimulates the scene, and scores how much of the candidate is occluded. Guided search keeps variants that move toward the requested occlusion. Random search and a weaker schedule are included as alternatives.</p>
+        <p>Scenes that reach the target are written out in a KITTI-style layout, with camera images, LiDAR, calibration, labels, and, for tracking, poses. A separate appearance-transfer model, adapted from Unsup Recycle-GAN, can shift simulated frames toward real imagery. The released checkpoint is epoch 50.</p>
+      </div>
+      <ol class="pipeline">
+        <li>
+          <span class="step">01</span>
+          <h3>Seeds</h3>
+          <p>CARLA maps, weather, ego routes, and a candidate actor.</p>
+        </li>
+        <li>
+          <span class="step">02</span>
+          <h3>Search</h3>
+          <p>Mutate traffic until the measured occlusion meets the target.</p>
+        </li>
+        <li>
+          <span class="step">03</span>
+          <h3>Export</h3>
+          <p>Save camera, LiDAR, calibration, labels, and tracking poses.</p>
+        </li>
+        <li>
+          <span class="step">04</span>
+          <h3>Transfer</h3>
+          <p>Map simulated camera frames toward a real appearance.</p>
+        </li>
+        <li>
+          <span class="step">05</span>
+          <h3>Test</h3>
+          <p>Read detection and tracking before and after retraining.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section id="detection" class="wrap">
+      <h2>Detection</h2>
+      <p class="lead">Drag the divider to compare predicted boxes before and after retraining. Switch the sensor to see the same frame on the camera or on the LiDAR projection.</p>
+      <div class="tabs" id="det-levels" role="tablist" aria-label="Detection occlusion level"></div>
+      <div class="segment" id="det-sensor" role="group" aria-label="Sensor">
+        <button type="button" data-value="camera" aria-pressed="true">Camera</button>
+        <button type="button" data-value="lidar" aria-pressed="false">LiDAR</button>
+      </div>
+      <div class="compare" id="det-compare">
+        <img class="base" alt="Detections after retraining" src="media/det/No_Occlusion/after_retrain/camera.jpg">
+        <div class="clip">
+          <img class="over" alt="Detections before retraining" src="media/det/No_Occlusion/before_retrain/camera.jpg">
+        </div>
+        <span class="tag before">Before</span>
+        <span class="tag after">After</span>
+        <div class="handle" aria-hidden="true"></div>
+        <input type="range" min="0" max="100" value="58" aria-label="Compare before and after retraining">
+      </div>
+      <p class="caption" id="det-caption">No occlusion. Blue boxes are model predictions on frame 000000.</p>
+    </section>
+
+    <section id="tracking" class="wrap">
+      <h2>Tracking</h2>
+      <p class="lead">Tracking sequences from the same five occlusion levels. Choose a level, then play the camera or LiDAR result before or after retraining.</p>
+      <div class="tabs" id="trk-levels" role="tablist" aria-label="Tracking occlusion level"></div>
+      <div class="segment" id="trk-phase" role="group" aria-label="Retraining stage">
+        <button type="button" data-value="before_retrain" aria-pressed="false">Before retraining</button>
+        <button type="button" data-value="after_retrain" aria-pressed="true">After retraining</button>
+      </div>
+      <div class="segment" id="trk-sensor" role="group" aria-label="Tracking sensor">
+        <button type="button" data-value="camera" aria-pressed="true">Camera</button>
+        <button type="button" data-value="lidar" aria-pressed="false">LiDAR</button>
+      </div>
+      <div class="video-frame">
+        <video id="trk-video" controls playsinline preload="metadata" poster="media/det/No_Occlusion/after_retrain/camera.jpg" src="media/track/No_Occlusion/after_retrain/camera.mp4"></video>
+      </div>
+      <p class="caption" id="trk-caption">No occlusion, after retraining, camera view.</p>
+    </section>
+
+    <section id="benchmark" class="wrap">
+      <h2>Benchmark</h2>
+      <p class="lead">The repository ships the KITTI-style benchmark under <code>evaluation/benchmark</code>, split into detection and tracking. Each split has the five occlusion levels below.</p>
+      <div class="levels">
+        <article>
+          <div class="swatch s1"></div>
+          <img src="media/det/No_Occlusion/after_retrain/camera.jpg" alt="No occlusion scene">
+          <h3>No occlusion</h3>
+          <p>The candidate stays in open view.</p>
+        </article>
+        <article>
+          <div class="swatch s2"></div>
+          <img src="media/det/Low_Occlusion/after_retrain/camera.jpg" alt="Low occlusion scene">
+          <h3>Low</h3>
+          <p>A small part of the candidate is blocked.</p>
+        </article>
+        <article>
+          <div class="swatch s3"></div>
+          <img src="media/det/Moderate_Occlusion/after_retrain/camera.jpg" alt="Moderate occlusion scene">
+          <h3>Moderate</h3>
+          <p>Occlusion covers a substantial share of the target.</p>
+        </article>
+        <article>
+          <div class="swatch s4"></div>
+          <img src="media/det/Severe_Occlusion/after_retrain/camera.jpg" alt="Severe occlusion scene">
+          <h3>Severe</h3>
+          <p>Most of the candidate is hidden from the ego vehicle.</p>
+        </article>
+        <article>
+          <div class="swatch s5"></div>
+          <img src="media/det/Extreme_Occlusion/after_retrain/camera.jpg" alt="Extreme occlusion scene">
+          <h3>Extreme</h3>
+          <p>The candidate is nearly out of sight.</p>
+        </article>
+      </div>
+      <p class="caption">Each level includes calibration, RGB images, labels, ground planes, and LiDAR. Tracking also includes poses and an occlusion window.</p>
+    </section>
+
+    <section id="bibtex" class="wrap">
+      <h2>BibTeX</h2>
+      <div class="bib">
+        <pre id="bib-text">@article{bhunter2026tosem,
+  title   = {BHUNTER: Generating Blind-Spot Driving Scenarios for Robustness Testing of Autonomous Driving Perception},
+  journal = {ACM Transactions on Software Engineering and Methodology},
+  year    = {2026}
+}</pre>
+        <button class="button" id="copy-bib" type="button">Copy</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p><a href="#gallery">Back to top</a></p>
+    <p>© 2026 BHUNTER Authors. Code and benchmark on <a href="https://github.com/alexps9/BHUNTER">GitHub</a>.</p>
+  </footer>
+  <script src="main.js"></script>
+</body>
+</html>
