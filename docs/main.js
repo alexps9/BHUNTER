@@ -6,6 +6,14 @@ const LEVELS = [
   ["Extreme_Occlusion", "Extreme"]
 ];
 
+const FRAME = {
+  No_Occlusion: "000000",
+  Low_Occlusion: "000000",
+  Moderate_Occlusion: "000004",
+  Severe_Occlusion: "000002",
+  Extreme_Occlusion: "000000"
+};
+
 function detPath(level, phase, sensor) {
   return `media/det/${level}/${phase}/${sensor}.jpg`;
 }
@@ -63,7 +71,7 @@ bindGroup(galleryThumbs, (level) => {
   const label = LEVELS.find(([id]) => id === level)[1];
   galleryImage.src = detPath(level, "after_retrain", "camera");
   galleryImage.alt = `Predicted detection under ${label.toLowerCase()}`;
-  galleryCaption.textContent = `${label}. Frame 000000, after retraining.`;
+  galleryCaption.textContent = `${label}. Frame ${FRAME[level]}, after retraining.`;
 });
 
 const detLevels = document.getElementById("det-levels");
@@ -81,7 +89,13 @@ function updateDetection() {
   detAfter.src = detPath(level, "after_retrain", sensor);
   detBefore.alt = `${label} detections before retraining on the ${sensorName}`;
   detAfter.alt = `${label} detections after retraining on the ${sensorName}`;
-  detCaption.textContent = `${label}. Blue boxes are model predictions on frame 000000.`;
+  let note = "";
+  if (level === "Severe_Occlusion") {
+    note = sensor === "lidar"
+      ? " Retraining recovers a second car missed before."
+      : " Open LiDAR to see the second car recovered after retraining.";
+  }
+  detCaption.textContent = `${label}. Blue boxes are model predictions on frame ${FRAME[level]}.${note}`;
 }
 
 fillLevelTabs(detLevels, updateDetection);
@@ -127,7 +141,22 @@ document.getElementById("copy-bib").addEventListener("click", async (event) => {
   }, 1600);
 });
 
-const sections = [...document.querySelectorAll("main section")];
+document.querySelectorAll(".diagram, .method-steps li, .stats article, .levels article, .reasons li, .case-video").forEach((el, index) => {
+  el.classList.add("reveal");
+  el.style.setProperty("--d", `${(index % 5) * 70}ms`);
+});
+
+const reveal = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (!entry.isIntersecting) return;
+    entry.target.classList.add("in");
+    reveal.unobserve(entry.target);
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll(".reveal").forEach((el) => reveal.observe(el));
+
+const sections = [...document.querySelectorAll("main section.page")];
 const navLinks = [...document.querySelectorAll(".topnav a")];
 const observer = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
