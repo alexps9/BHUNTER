@@ -1,17 +1,19 @@
 #!/bin/bash
+# Run the BHUNTER scenario fuzzer. Execute this script from any directory;
+# it switches to the Blindhunter package root before launching Python.
 
-# Default values
-CORPUS="../data/corpus"
-WORKDIR="../output"
-MAP="Town01"
+cd "$(dirname "$0")"
+
+CORPUS="data/corpus/seeds"
+WORKDIR="output"
+MAP="Town02"
 STRATEGY="guided"
-DESIRED_OCCLUSION=0.8
-CARLA_PATH="../carla/CarlaUE4.sh"
-TRACKING_PATH="../data/tracking"
-EXP_PATH="../data/exp"
-BENCHMARK_PATH="../data/benchmark"
+DESIRED_OCCLUSION="0.8"
+CARLA_PATH="${CARLA_PATH:-../carla/CarlaUE4.sh}"
+TRACKING_PATH="output/tracking"
+EXP_PATH="output/exp"
+BENCHMARK_PATH="output/benchmark"
 
-# Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
         --corpus)
@@ -52,19 +54,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Unknown parameter: $1"
+            echo "Usage: $0 [--corpus DIR] [--workdir DIR] [--map NAME] [--strategy guided|random|no_scheduling] [--desired_occlusion FLOAT] [--carla_path PATH] [--tracking_path DIR] [--exp_path DIR] [--benchmark_path DIR]"
             exit 1
             ;;
     esac
 done
 
-# Create necessary directories if they don't exist
-mkdir -p "$CORPUS"
-mkdir -p "$WORKDIR"
-mkdir -p "$TRACKING_PATH"
-mkdir -p "$EXP_PATH"
-mkdir -p "$BENCHMARK_PATH"
+mkdir -p "$CORPUS" "$WORKDIR" "$TRACKING_PATH" "$EXP_PATH" "$BENCHMARK_PATH"
 
-# Print configuration
 echo "Starting fuzzer with the following configuration:"
 echo "Corpus directory: $CORPUS"
 echo "Working directory: $WORKDIR"
@@ -76,7 +73,6 @@ echo "Tracking path: $TRACKING_PATH"
 echo "Experiment path: $EXP_PATH"
 echo "Benchmark path: $BENCHMARK_PATH"
 
-# Run the fuzzer
 python exp_fuzzer.py \
     --corpus "$CORPUS" \
     --workdir "$WORKDIR" \
@@ -88,10 +84,10 @@ python exp_fuzzer.py \
     --exp_path "$EXP_PATH" \
     --benchmark_path "$BENCHMARK_PATH"
 
-# Check if the fuzzer ran successfully
-if [ $? -eq 0 ]; then
+status=$?
+if [ $status -eq 0 ]; then
     echo "Fuzzer completed successfully"
 else
-    echo "Fuzzer failed with error code $?"
-    exit 1
-fi 
+    echo "Fuzzer failed with error code $status"
+    exit $status
+fi

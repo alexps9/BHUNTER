@@ -1,7 +1,6 @@
 import logging
 import logging.config
 from pathlib import Path
-from ruamel.yaml import YAML
 
 def setup_logging(default_path='logger.cfg.yml', default_level=logging.INFO):
     """
@@ -12,6 +11,12 @@ def setup_logging(default_path='logger.cfg.yml', default_level=logging.INFO):
     """
     path = Path(__file__).parent / default_path
     if path.is_file():
+        try:
+            from ruamel.yaml import YAML
+        except ImportError:
+            logging.basicConfig(level=default_level)
+            logging.warning("ruamel.yaml is not installed; using default logging.")
+            return
         with open(path, 'rt') as f:
             config = YAML(typ="safe", pure=True).load(f)
         logging.config.dictConfig(config)

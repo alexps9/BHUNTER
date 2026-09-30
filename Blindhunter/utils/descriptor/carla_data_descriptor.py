@@ -22,7 +22,6 @@
 from typing import List
 from math import pi
 import numpy as np
-import CMM_CARLA_Config as CFG
 
 
 def rotz(t):

@@ -1,9 +1,14 @@
-import config as _Config
-import logger as _Logger
-import mutator as _Mutator
-import parser as _Parser
-import numpy as np
 import os
+import sys
+
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
+from Blindhunter import config as _Config
+from Blindhunter import logger as _Logger
+from Blindhunter import mutator as _Mutator
+import numpy as np
 import subprocess
 import time
 import multiprocessing
@@ -14,7 +19,6 @@ import shutil
 import pdb
 import carla
 import random
-import sys
 
 LOG = _Logger.get_logger(_Config.__prog__)
 
@@ -98,7 +102,6 @@ class Fuzzer:
         self.client = None
         self.flag = 0
         self.global_cnt = 0
-        self.tracking_path = None
         snapshot_path = self.workdir + f"/{str(self.strategy)}/{str(self.desired_occlusion)}/snapshot"
         if os.path.exists(snapshot_path):
             print("reloading snapshot")
@@ -474,7 +477,7 @@ class Fuzzer:
                 else:
                     if _ is None:
                         scenario.verified = False
-                    elif _ is 1:
+                    elif _ == 1:
                         self.population_pop(scenario)
 
         else:
@@ -501,7 +504,7 @@ class Fuzzer:
                         else:
                             if _ is None:
                                 scenario.verified = False
-                            elif _ is 1:
+                            elif _ == 1:
                                 self.population_pop(scenario)
 
 
@@ -587,7 +590,7 @@ class Fuzzer:
                             f.write(log_info)
 
                     else:
-                        if mutation_info is 1:
+                        if mutation_info == 1:
                             self.population_pop(cur_scenario)
 
 
@@ -686,7 +689,7 @@ class Fuzzer:
                 else:
                     if _ is None:
                         scenario.verified = False
-                    elif _ is 1:
+                    elif _ == 1:
                         self.population_pop(scenario)
 
         else:
@@ -713,7 +716,7 @@ class Fuzzer:
                         else:
                             if _ is None:
                                 scenario.verified = False
-                            elif _ is 1:
+                            elif _ == 1:
                                 self.population_pop(scenario)
 
 
@@ -799,7 +802,7 @@ class Fuzzer:
                             f.write(log_info)
 
                     else:
-                        if mutation_info is 1:
+                        if mutation_info == 1:
                             self.population_pop(cur_scenario)
 
     def excuate_weak(self):

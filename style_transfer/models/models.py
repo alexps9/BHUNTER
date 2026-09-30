@@ -12,7 +12,7 @@ def create_model(opt):
         model = RecycleGANModel()
     elif opt.model == 'reCycle_gan':
         assert(opt.dataset_mode == 'unaligned_triplet' or opt.dataset_mode == 'unaligned_triplet_scale' or opt.dataset_mode == 'unaligned_scale')
-        from .reCycle_gan_model import ReCycleGANModel
+        from .bhunter_recycle_model import ReCycleGANModel
         model = ReCycleGANModel()
     elif opt.model == 'unsup_single':
         assert(opt.dataset_mode == 'unaligned_scale')

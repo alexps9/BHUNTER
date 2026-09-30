@@ -5,6 +5,7 @@ import numpy as np
 import math as mt
 from numpy.matlib import repmat
 import ctypes
+import os
 from scipy.ndimage import minimum_filter
 import cv2
 from sklearn.cluster import KMeans
@@ -533,7 +534,19 @@ def downsample(points, colors, leaf_size):
              of the point cloud, respectively.
     """
 
-    pcl_lib = ctypes.cdll.LoadLibrary("/home/adsec/blindhunter/grid_map/utils/ground_truth/build/libpcl_downsample.so")
+    lib_dir = os.path.join(os.path.dirname(__file__), "build")
+    lib_candidates = [
+        os.path.join(lib_dir, "libpcl_downsample.so"),
+        os.path.join(lib_dir, "libpcl_downsample.dylib"),
+        os.path.join(lib_dir, "pcl_downsample.dll"),
+    ]
+    lib_path = next((path for path in lib_candidates if os.path.isfile(path)), None)
+    if lib_path is None:
+        raise FileNotFoundError(
+            "pcl_downsample library not found. Build Blindhunter/utils/ground_truth "
+            "with CMake and PCL, then place the shared library in that build/ directory."
+        )
+    pcl_lib = ctypes.cdll.LoadLibrary(lib_path)
 
     # To pass the numpy array to the C function
     ND_POINTER = np.ctypeslib.ndpointer(dtype=np.float64, ndim=2, flags="C")

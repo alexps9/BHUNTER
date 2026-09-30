@@ -1,0 +1,20 @@
+# IDE and OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Local experiment output
+Blindhunter/output/
+style_transfer/results/
+*.log
+fuzzer.log

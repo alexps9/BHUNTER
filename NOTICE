@@ -1,0 +1,20 @@
+BHUNTER includes or adapts third-party components. Those components remain
+under their own licenses.
+
+- style_transfer/
+  Adapted from Unsup_Recycle_GAN
+  (https://github.com/wangkaihong/Unsup_Recycle_GAN), which itself builds on
+  Recycle-GAN (https://github.com/aayushbansal/Recycle-GAN) and
+  pytorch-CycleGAN-and-pix2pix
+  (https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix).
+  Citation: Kaihong Wang, Kumar Akash, and Teruhisa Misu,
+  "Learning Temporally and Semantically Consistent Unpaired Video-to-video
+  Translation Through Pseudo-Supervision From Synthetic Optical Flow",
+  AAAI 2022.
+
+- Blindhunter/scenario_runner
+  Git submodule: https://github.com/seclab-fudan/scenario_runner.git
+  Based on the CARLA Scenario Runner.
+
+- CARLA (https://carla.org/) is required to execute generated scenarios and
+  is not vendored in this repository.

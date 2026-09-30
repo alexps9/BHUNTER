@@ -6,7 +6,6 @@ import carla
 import queue
 import math as mt
 import cv2
-from Blindhunter.utils.spawn import spawn_vehicle
 from Blindhunter.utils.ground_truth import ground_truth
 from Blindhunter.utils.spawn import sensor_resemble
 from Blindhunter.scenario_runner.srunner.scenariomanager.carla_data_provider import CarlaDataProvider
@@ -22,14 +21,35 @@ import hashlib
 import multiprocessing
 import shutil
 from Blindhunter.utils.descriptor.carla_data_descriptor import CarlaDataDescriptor, CarlaDataDescriptorTracking
-import Blindhunter.CMM_CARLA_Config as CFG
+from Blindhunter.utils.descriptor import CMM_CARLA_Config as CFG
 from numpy.linalg import pinv, inv
-from Blindhunter.CARLA_Config import *
 from PIL import Image
 import math
 import logging
 from math import pi
 import bisect
+
+_BUNDLED_SENSOR_CONFIG = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "datasets", "KITTI", "config", "kitti_sensor.yaml")
+)
+
+
+def resolve_sensor_config(config_path):
+    """Return a sensor YAML that exists on this machine.
+
+    Seed files may still carry a path from the original experiment host.
+    When that path is missing, fall back to the KITTI sensor config shipped
+    with this repository.
+    """
+    if config_path and os.path.isfile(config_path):
+        return os.path.abspath(config_path)
+    if os.path.isfile(_BUNDLED_SENSOR_CONFIG):
+        return _BUNDLED_SENSOR_CONFIG
+    raise FileNotFoundError(
+        "Sensor config not found ({!r}). Expected the bundled file at {}".format(
+            config_path, _BUNDLED_SENSOR_CONFIG
+        )
+    )
 
 
 """ OUTPUT FOLDER GENERATION FOR KITTI DETECTION"""
@@ -1457,7 +1477,7 @@ class Mutator():
 
 
             # set sensors
-            sensor_config = seed["Sensor"]
+            sensor_config = resolve_sensor_config(seed["Sensor"])
             self.sensor_list = sensor_resemble.setup_vehicle_sensors(world, self.ego, sensor_config)
             for sensor in self.sensor_list:
                 if sensor.type_id == 'sensor.camera.rgb':
@@ -1474,7 +1494,7 @@ class Mutator():
 
                 print(sensor.type_id)
 
-            if mutation_type is 0:
+            if mutation_type == 0:
                 # set candidate
                 candidate = seed["candidate"]
                 candidate_route = []
@@ -1506,7 +1526,7 @@ class Mutator():
                 self.actor_list.append(self.candidate)
 
 
-            elif mutation_type is 1:
+            elif mutation_type == 1:
                 tag = 12
                 candidate = seed["candidate"]
                 candidate_spawn_point = carla.Transform(
@@ -1523,7 +1543,7 @@ class Mutator():
                 self.candidate.apply_control(pedestrain_control)
 
             # set npc
-            if len(seed["npcs"]) is 0:
+            if len(seed["npcs"]) == 0:
                 npc_spawn_transform = start_waypoint.transform
                 npc_loc = npc_spawn_transform.location
                 offset_transform = carla.Transform(carla.Location(x=0, y=0, z=1.6),
@@ -1694,7 +1714,7 @@ class Mutator():
                         print("move now!")
                         npc.set_autopilot(True)
 
-                        if len(seed["npcs"]) is 0:
+                        if len(seed["npcs"]) == 0:
                             npc_route = []
                             for point in prev_waypoints:
                                 transform = point.transform
@@ -1854,7 +1874,7 @@ class Mutator():
             camera_segmentation.listen(image_queue_segmentation.put)
 
             # set sensors
-            sensor_config = seed["Sensor"]
+            sensor_config = resolve_sensor_config(seed["Sensor"])
             self.sensor_list = sensor_resemble.setup_vehicle_sensors(world, self.ego, sensor_config)
             for sensor in self.sensor_list:
                 if sensor.type_id == 'sensor.camera.rgb':
