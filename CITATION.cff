@@ -41,6 +41,7 @@ authors:
 year: 2026
 license: MIT
 repository-code: "https://github.com/alexps9/BHUNTER"
+doi: 10.5281/zenodo.23072481
 preferred-citation:
   type: article
   title: "BHUNTER: Generating Blind-Spot Driving Scenarios for Robustness Testing of Autonomous Driving Perception"

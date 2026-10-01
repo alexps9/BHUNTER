@@ -129,7 +129,7 @@ These files are for inspection. They do not retrain a detector or tracker.
 
 ## Citation
 
-If you use BHUNTER, please cite the TOSEM 2026 paper. Software metadata for a Zenodo archive is in [`.zenodo.json`](.zenodo.json). A DOI is minted after the GitHub repository is enabled at [Zenodo](https://zenodo.org/account/settings/github/) and a release is published.
+If you use BHUNTER, please cite the TOSEM 2026 paper. The v1.0.0 software archive is on Zenodo: [10.5281/zenodo.23072481](https://doi.org/10.5281/zenodo.23072481). The concept DOI [10.5281/zenodo.23072480](https://doi.org/10.5281/zenodo.23072480) always points at the latest version.
 
 ```bibtex
 @article{bhunter2026tosem,
@@ -137,6 +137,19 @@ If you use BHUNTER, please cite the TOSEM 2026 paper. Software metadata for a Ze
   title   = {BHUNTER: Generating Blind-Spot Driving Scenarios for Robustness Testing of Autonomous Driving Perception},
   journal = {ACM Transactions on Software Engineering and Methodology},
   year    = {2026}
+}
+```
+
+```bibtex
+@software{bhunter2026zenodo,
+  author    = {Peng, Songyang and Dai, Jiarun and Lv, Yanghao and Luo, Jiaqi and Huang, Zongan and Zhang, Yuan and Yang, Min},
+  title     = {BHUNTER: Generating Blind-Spot Driving Scenarios for Robustness Testing of Autonomous Driving Perception},
+  month     = oct,
+  year      = 2026,
+  publisher = {Zenodo},
+  version   = {1.0.0},
+  doi       = {10.5281/zenodo.23072481},
+  url       = {https://doi.org/10.5281/zenodo.23072481}
 }
 ```
 
