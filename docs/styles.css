@@ -21,7 +21,7 @@ body {
     radial-gradient(900px 420px at 50% -40px, rgba(46, 130, 206, 0.16), transparent 70%),
     var(--paper);
   font-family: "Nunito Sans", "Segoe UI", sans-serif;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.65;
 }
 
@@ -64,7 +64,7 @@ a:hover { color: var(--blue); }
 .topnav a {
   color: #5d7388;
   text-decoration: none;
-  font-size: 14.5px;
+  font-size: 16.5px;
   font-weight: 700;
   letter-spacing: 0.01em;
   padding: 16px 0 14px;
@@ -204,14 +204,14 @@ a:hover { color: var(--blue); }
 
 .button svg { width: 16px; height: 16px; fill: currentColor; }
 
-section { padding: 64px 0 20px; }
+section.page { padding: 120px 0 28px; }
 
 h2 {
-  margin: 0 0 14px;
+  margin: 0 0 22px;
   text-align: center;
-  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  font-size: clamp(2.15rem, 3.6vw, 2.8rem);
   letter-spacing: -0.03em;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .lead, .prose {
@@ -241,10 +241,10 @@ h2 {
 }
 
 .caption {
-  margin: 12px 0 0;
+  margin: 14px 0 0;
   text-align: center;
   color: var(--muted);
-  font-size: 15px;
+  font-size: 16.5px;
 }
 
 .tabs, .segment {
@@ -268,7 +268,7 @@ h2 {
   color: var(--blue);
   border-radius: 999px;
   padding: 7px 14px;
-  font-size: 14.5px;
+  font-size: 15.5px;
   font-weight: 800;
 }
 
@@ -504,7 +504,7 @@ h2 {
 .pipeline p {
   margin: 0;
   color: var(--muted);
-  font-size: 14.5px;
+  font-size: 15.5px;
   line-height: 1.5;
 }
 
@@ -685,12 +685,12 @@ h2 {
   line-height: 1.35;
 }
 
-.sub { padding: 52px 0 4px; }
+.sub { padding: 72px 0 8px; }
 
 .sub > h3 {
-  margin: 0 0 10px;
+  margin: 0 0 14px;
   text-align: center;
-  font-size: clamp(1.55rem, 2.6vw, 2.05rem);
+  font-size: clamp(1.75rem, 2.8vw, 2.25rem);
   letter-spacing: -0.03em;
 }
 
