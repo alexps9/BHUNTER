@@ -1,0 +1,42 @@
+{
+  "No_Occlusion": {
+    "start": 0,
+    "end": 201,
+    "window": [
+      0,
+      201
+    ]
+  },
+  "Low_Occlusion": {
+    "start": 0,
+    "end": 122,
+    "window": [
+      0,
+      110
+    ]
+  },
+  "Moderate_Occlusion": {
+    "start": 0,
+    "end": 102,
+    "window": [
+      0,
+      90
+    ]
+  },
+  "Severe_Occlusion": {
+    "start": 80,
+    "end": 129,
+    "window": [
+      92,
+      117
+    ]
+  },
+  "Extreme_Occlusion": {
+    "start": 33,
+    "end": 198,
+    "window": [
+      45,
+      186
+    ]
+  }
+}

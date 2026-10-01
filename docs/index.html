@@ -213,20 +213,12 @@
 
       <section id="tracking" class="sub">
       <h3>Tracking</h3>
-      <p class="lead">Sequences from the same five occlusion levels. Choose a level, then play the camera or LiDAR result before or after retraining.</p>
+      <p class="lead">These clips are the released camera frames in <code>evaluation/benchmark/tracking</code>, played in order. Each one covers that level's occlusion window.</p>
       <div class="tabs" id="trk-levels" role="tablist" aria-label="Tracking occlusion level"></div>
-      <div class="segment" id="trk-phase" role="group" aria-label="Retraining stage">
-        <button type="button" data-value="before_retrain" aria-pressed="false">Before retraining</button>
-        <button type="button" data-value="after_retrain" aria-pressed="true">After retraining</button>
-      </div>
-      <div class="segment" id="trk-sensor" role="group" aria-label="Tracking sensor">
-        <button type="button" data-value="camera" aria-pressed="true">Camera</button>
-        <button type="button" data-value="lidar" aria-pressed="false">LiDAR</button>
-      </div>
       <div class="video-frame">
-        <video id="trk-video" controls playsinline preload="metadata" poster="media/det/No_Occlusion/after_retrain/camera.jpg" src="media/track/No_Occlusion/after_retrain/camera.mp4"></video>
+        <video id="trk-video" controls playsinline preload="metadata" poster="media/trackseq/No_Occlusion.jpg" src="media/trackseq/No_Occlusion.mp4"></video>
       </div>
-      <p class="caption" id="trk-caption">No occlusion, after retraining, camera view.</p>
+      <p class="caption" id="trk-caption">No occlusion. Camera frames 000000–000201 from the released tracking sequence.</p>
       </section>
     </section>
 

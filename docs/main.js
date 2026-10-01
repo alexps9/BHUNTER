@@ -18,8 +18,16 @@ function detPath(level, phase, sensor) {
   return `media/det/${level}/${phase}/${sensor}.jpg`;
 }
 
-function trackPath(level, phase, sensor) {
-  return `media/track/${level}/${phase}/${sensor}.mp4`;
+const TRACK = {
+  No_Occlusion: [0, 201, 0, 201],
+  Low_Occlusion: [0, 122, 0, 110],
+  Moderate_Occlusion: [0, 102, 0, 90],
+  Severe_Occlusion: [80, 129, 92, 117],
+  Extreme_Occlusion: [33, 198, 45, 186]
+};
+
+function frameName(index) {
+  return String(index).padStart(6, "0");
 }
 
 function press(group, value) {
@@ -165,30 +173,24 @@ fillLevelTabs(detLevels, updateDetection);
 bindGroup(detSensor, updateDetection);
 
 const trkLevels = document.getElementById("trk-levels");
-const trkPhase = document.getElementById("trk-phase");
-const trkSensor = document.getElementById("trk-sensor");
 const trkVideo = document.getElementById("trk-video");
 const trkCaption = document.getElementById("trk-caption");
 
 function updateTracking() {
   const level = selected(trkLevels);
-  const phase = selected(trkPhase);
-  const sensor = selected(trkSensor);
   const label = LEVELS.find(([id]) => id === level)[1];
-  const phaseName = phase === "before_retrain" ? "before retraining" : "after retraining";
-  const sensorName = sensor === "camera" ? "camera view" : "LiDAR view";
-  const next = trackPath(level, phase, sensor);
-  trkVideo.poster = detPath(level, phase, sensor);
+  const [start, end, winStart, winEnd] = TRACK[level];
+  const next = `media/trackseq/${level}.mp4`;
+  trkVideo.poster = `media/trackseq/${level}.jpg`;
   if (trkVideo.getAttribute("src") !== next) {
     trkVideo.src = next;
     trkVideo.load();
   }
-  trkCaption.textContent = `${label}, ${phaseName}, ${sensorName}.`;
+  trkCaption.textContent = `${label}. Camera frames ${frameName(start)}–${frameName(end)} from the released tracking sequence. The occlusion window is ${frameName(winStart)}–${frameName(winEnd)}.`;
 }
 
 fillLevelTabs(trkLevels, updateTracking);
-bindGroup(trkPhase, updateTracking);
-bindGroup(trkSensor, updateTracking);
+updateTracking();
 
 document.getElementById("copy-bib").addEventListener("click", async (event) => {
   const text = document.getElementById("bib-text").textContent;
