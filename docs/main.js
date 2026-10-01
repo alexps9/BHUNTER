@@ -153,13 +153,7 @@ function updateDetection() {
   const sensorName = sensor === "camera" ? "camera image" : "LiDAR projection";
   detBefore.alt = `${label} detections before retraining on the ${sensorName}`;
   detAfter.alt = `${label} detections after retraining on the ${sensorName}`;
-  let note = "";
-  if (level === "Severe_Occlusion") {
-    note = sensor === "lidar"
-      ? " Retraining recovers a second car missed before."
-      : " Open LiDAR to see the second car recovered after retraining.";
-  }
-  detCaption.textContent = `${label}. Blue boxes are model predictions on frame ${FRAME[level]}.${note}`;
+  detCaption.textContent = `${label}. Blue boxes are model predictions on frame ${FRAME[level]}.`;
   swapPair(
     detBefore,
     detAfter,
